@@ -695,6 +695,158 @@
         const db = getFirestore(app);
         
         // ==========================================
+        //  LÓGICA DOS DROPDOWNS CUSTOMIZADOS (ADICIONADA AQUI)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // -- LÓGICA DE TAMANHO (SELEÇÃO MÚLTIPLA) --
+            const tamWrapper = document.getElementById('tamanho-wrapper');
+            const tamDisplay = document.getElementById('tamanho-display');
+            const tamOptions = document.getElementById('tamanho-options');
+            const tamHidden = document.getElementById('tamanho');
+            const tamSpan = tamDisplay.querySelector('span');
+            let selectedSizes = [];
+
+            tamDisplay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                tamOptions.classList.toggle('hidden');
+                document.getElementById('genero-options').classList.add('hidden'); // fecha o outro
+            });
+
+            tamOptions.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const option = e.target.closest('.custom-option');
+                if (!option) return;
+
+                const val = option.dataset.value;
+                if (selectedSizes.includes(val)) {
+                    selectedSizes = selectedSizes.filter(s => s !== val); // remove se ja tem
+                    option.classList.remove('bg-gold', 'text-white');
+                    option.classList.add('hover:bg-gold-light', 'hover:text-gold-dark');
+                } else {
+                    selectedSizes.push(val); // adiciona novo
+                    option.classList.add('bg-gold', 'text-white');
+                    option.classList.remove('hover:bg-gold-light', 'hover:text-gold-dark');
+                }
+
+                tamHidden.value = selectedSizes.join(', ');
+                tamSpan.textContent = selectedSizes.length > 0 ? selectedSizes.join(', ') : 'Selecionar';
+                tamSpan.classList.toggle('text-dark', selectedSizes.length > 0);
+            });
+
+            // Adiciona a função de reset para limpar apos o submit
+            tamWrapper.resetMulti = () => {
+                selectedSizes = [];
+                tamHidden.value = '';
+                tamSpan.textContent = 'Selecionar';
+                tamSpan.classList.remove('text-dark');
+                tamOptions.querySelectorAll('.custom-option').forEach(opt => {
+                    opt.classList.remove('bg-gold', 'text-white');
+                    opt.classList.add('hover:bg-gold-light', 'hover:text-gold-dark');
+                });
+            };
+
+            // -- LÓGICA DE GÊNERO (SELEÇÃO ÚNICA) --
+            const genWrapper = document.getElementById('genero-wrapper');
+            const genDisplay = document.getElementById('genero-display');
+            const genOptions = document.getElementById('genero-options');
+            const genHidden = document.getElementById('genero');
+            const genSpan = genDisplay.querySelector('span');
+
+            genDisplay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                genOptions.classList.toggle('hidden');
+                tamOptions.classList.add('hidden'); // fecha o outro
+            });
+
+            genOptions.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const option = e.target.closest('.custom-option');
+                if (!option) return;
+
+                const val = option.dataset.value;
+                genHidden.value = val;
+                genSpan.textContent = val;
+                genSpan.classList.add('text-dark');
+                genOptions.classList.add('hidden');
+                
+                // Remove estilos antigos e adiciona ao novo selecionado
+                genOptions.querySelectorAll('.custom-option').forEach(opt => {
+                    opt.classList.remove('bg-gold', 'text-white');
+                    opt.classList.add('hover:bg-gold-light', 'hover:text-gold-dark');
+                });
+                option.classList.add('bg-gold', 'text-white');
+                option.classList.remove('hover:bg-gold-light', 'hover:text-gold-dark');
+            });
+
+            genWrapper.resetSingle = () => {
+                genHidden.value = '';
+                genSpan.textContent = 'Selecionar';
+                genSpan.classList.remove('text-dark');
+                genOptions.querySelectorAll('.custom-option').forEach(opt => {
+                    opt.classList.remove('bg-gold', 'text-white');
+                    opt.classList.add('hover:bg-gold-light', 'hover:text-gold-dark');
+                });
+            };
+
+            // FECHAR OS MENUS AO CLICAR EM QUALQUER OUTRO LUGAR DA TELA
+            document.addEventListener('click', () => {
+                tamOptions.classList.add('hidden');
+                genOptions.classList.add('hidden');
+            });
+        });
+
+        // ==========================================
+        //  COMPRESSÃO DE IMAGENS
+        // ==========================================
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = error => reject(error);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Helper para a ordenação (prevenindo que o app crashe sem essa função)
+        function getMinSizeWeight(sizeStr) {
+            if(!sizeStr) return 999;
+            const sizeMap = { 'P': 1, 'M': 2, 'G': 3 };
+            const firstSize = sizeStr.split(',')[0].trim().toUpperCase();
+            if (sizeMap[firstSize]) return sizeMap[firstSize];
+            const num = parseInt(firstSize);
+            return isNaN(num) ? 999 : num;
+        }
+
+        // ==========================================
         //  LÓGICA GERAL DE NAVEGAÇÃO E UTILITÁRIOS
         // ==========================================
         window.switchAppView = function(view) {
@@ -1318,7 +1470,8 @@
                     if (fileInput.files.length === 0) throw new Error("Selecione pelo menos uma imagem.");
                     if (fileInput.files.length > 5) throw new Error("Por favor, selecione no máximo 5 imagens.");
                     const filesArray = Array.from(fileInput.files);
-                    imagensData = await Promise.all(filesArray.map(file => compressImage(file)));
+                    // Supondo que você tenha a função compressImage (se não tiver, este envio localmente via arquivo precisará de storage Firebase - aqui usamos a lógica que já estava descrita na estrutura original).
+                    imagensData = await Promise.all(filesArray.map(file => compressImage(file))); 
                 }
 
                 const productData = {
