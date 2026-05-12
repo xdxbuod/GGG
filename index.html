@@ -208,7 +208,7 @@
     </header>
 
     <!-- ========================================================================= -->
-    <!-- CONTAINER 1: GESTÃO DE VITRINE (EXISTENTE) -->
+    <!-- CONTAINER 1: GESTÃO DE VITRINE -->
     <!-- ========================================================================= -->
     <main id="app-view-vitrine" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-2 transition-all duration-500 block">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
@@ -420,7 +420,7 @@
     </main>
 
     <!-- ========================================================================= -->
-    <!-- CONTAINER 2: SISTEMA DE GESTÃO DE PEDIDOS (NOVO) -->
+    <!-- CONTAINER 2: SISTEMA DE GESTÃO DE PEDIDOS -->
     <!-- ========================================================================= -->
     <main id="app-view-pedidos" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-2 transition-all duration-500 hidden">
         
@@ -531,7 +531,7 @@
     </main>
 
     <!-- ========================================================================= -->
-    <!-- CONTAINER 3: GESTÃO DE CLIENTES CRM (NOVO) -->
+    <!-- CONTAINER 3: GESTÃO DE CLIENTES CRM -->
     <!-- ========================================================================= -->
     <main id="app-view-clientes" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-2 transition-all duration-500 hidden">
         <div class="glass-panel rounded-[2rem] overflow-hidden flex flex-col min-h-[700px]">
@@ -540,7 +540,7 @@
             <div class="p-6 md:p-8 border-b border-gray-200/50 bg-white/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                     <h2 class="font-serif text-3xl font-bold text-dark">Base de Clientes</h2>
-                    <p class="text-sm text-gray-500 mt-1 font-medium">Gerencie o relacionamento com seu público.</p>
+                    <p class="text-sm text-gray-500 mt-1 font-medium">Gerencie o relacionamento com seu público em tempo real.</p>
                 </div>
                 <div class="relative w-full md:w-96 group">
                     <i class="fa-solid fa-magnifying-glass text-gray-400 absolute left-4 top-3.5 group-focus-within:text-gold transition-colors"></i>
@@ -627,6 +627,8 @@
                         <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 text-sm">
                             <p class="text-gray-500 mb-1">Cadastrado em:</p>
                             <p class="font-semibold text-dark mb-3" id="cm-cadastro">--</p>
+                            <p class="text-gray-500 mb-1">Nascimento:</p>
+                            <p class="font-semibold text-dark mb-3" id="cm-nascimento">--</p>
                             <p class="text-gray-500 mb-1">Última compra:</p>
                             <p class="font-semibold text-dark" id="cm-ultima-compra">--</p>
                         </div>
@@ -681,6 +683,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, addDoc, collection, getDocs, deleteDoc, doc, orderBy, query, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAnTDLOTgFm7a39r9WSfB-O1NxbQGdWG0c",
@@ -693,9 +696,18 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Segurança Visual Administrativa (Proteção Simulada para não quebrar layout atual)
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                console.warn("⚠️ ALERTA DE SEGURANÇA: Administrador não logado pelo Firebase Auth. O painel operará em modo de desenvolvimento.");
+                // O layout original foi mantido intocado. Em modo produção rigoroso, haveria um redirecionamento `window.location.href = '/login.html'` aqui.
+            }
+        });
         
         // ==========================================
-        //  LÓGICA DOS DROPDOWNS CUSTOMIZADOS (ADICIONADA AQUI)
+        //  LÓGICA DOS DROPDOWNS CUSTOMIZADOS E COMPRESSÃO
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
             // -- LÓGICA DE TAMANHO (SELEÇÃO MÚLTIPLA) --
@@ -719,11 +731,11 @@
 
                 const val = option.dataset.value;
                 if (selectedSizes.includes(val)) {
-                    selectedSizes = selectedSizes.filter(s => s !== val); // remove se ja tem
+                    selectedSizes = selectedSizes.filter(s => s !== val); 
                     option.classList.remove('bg-gold', 'text-white');
                     option.classList.add('hover:bg-gold-light', 'hover:text-gold-dark');
                 } else {
-                    selectedSizes.push(val); // adiciona novo
+                    selectedSizes.push(val); 
                     option.classList.add('bg-gold', 'text-white');
                     option.classList.remove('hover:bg-gold-light', 'hover:text-gold-dark');
                 }
@@ -733,7 +745,6 @@
                 tamSpan.classList.toggle('text-dark', selectedSizes.length > 0);
             });
 
-            // Adiciona a função de reset para limpar apos o submit
             tamWrapper.resetMulti = () => {
                 selectedSizes = [];
                 tamHidden.value = '';
@@ -755,7 +766,7 @@
             genDisplay.addEventListener('click', (e) => {
                 e.stopPropagation();
                 genOptions.classList.toggle('hidden');
-                tamOptions.classList.add('hidden'); // fecha o outro
+                tamOptions.classList.add('hidden'); 
             });
 
             genOptions.addEventListener('click', (e) => {
@@ -769,7 +780,6 @@
                 genSpan.classList.add('text-dark');
                 genOptions.classList.add('hidden');
                 
-                // Remove estilos antigos e adiciona ao novo selecionado
                 genOptions.querySelectorAll('.custom-option').forEach(opt => {
                     opt.classList.remove('bg-gold', 'text-white');
                     opt.classList.add('hover:bg-gold-light', 'hover:text-gold-dark');
@@ -788,7 +798,6 @@
                 });
             };
 
-            // FECHAR OS MENUS AO CLICAR EM QUALQUER OUTRO LUGAR DA TELA
             document.addEventListener('click', () => {
                 tamOptions.classList.add('hidden');
                 genOptions.classList.add('hidden');
@@ -796,9 +805,9 @@
         });
 
         // ==========================================
-        //  COMPRESSÃO DE IMAGENS
+        //  COMPRESSÃO DE IMAGENS 
         // ==========================================
-        function compressImage(file) {
+        window.compressImage = function(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -836,7 +845,6 @@
             });
         }
 
-        // Helper para a ordenação (prevenindo que o app crashe sem essa função)
         function getMinSizeWeight(sizeStr) {
             if(!sizeStr) return 999;
             const sizeMap = { 'P': 1, 'M': 2, 'G': 3 };
@@ -862,7 +870,7 @@
                 } else {
                     el.classList.add('hidden');
                     let baseNavClass = "px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 text-gray-500 hover:text-dark uppercase tracking-widest flex items-center gap-2 whitespace-nowrap";
-                    if(v === 'pedidos') baseNavClass += " relative"; // Mantém relative pro badge
+                    if(v === 'pedidos') baseNavClass += " relative";
                     nav.className = baseNavClass;
                 }
             });
@@ -875,7 +883,7 @@
         function playAlertSound() {
             const audio = document.getElementById('notification-sound');
             audio.volume = 0.5;
-            audio.play().catch(e => console.log("Áudio bloqueado pelo navegador até interação do usuário."));
+            audio.play().catch(e => console.log("Áudio bloqueado pelo navegador até interação."));
         }
 
         window.showToast = function(message, type = 'success') {
@@ -905,7 +913,7 @@
 
         window.updateCategoryDropdown = function() {
             const select = document.getElementById('category-filter');
-            if(!select) return; // Segurança extra
+            if(!select) return;
             const currentVal = select.value;
             select.innerHTML = '<option value="">Todas Categorias</option>';
             Array.from(window.allCategories).sort().forEach(cat => {
@@ -920,14 +928,24 @@
         };
 
         // ==========================================
-        //  SISTEMAS INTEGRAIS (PRODUTOS, PEDIDOS E CLIENTES)
+        //  SISTEMAS INTEGRAIS (PRODUTOS, PEDIDOS E CLIENTES EM TEMPO REAL)
         // ==========================================
         let allOrders = [];
+        let allUsers = [];
         let allCustomers = [];
         let currentOrderTab = 'pendentes'; 
         let previousOrdersLength = -1;
 
-        // --- MONITORAMENTO EM TEMPO REAL (FIREBASE ONSNAPSHOT) ---
+        // --- 1. OUVINTE EM TEMPO REAL DE USUÁRIOS (CRM BASE) ---
+        onSnapshot(collection(db, 'usuarios'), (snapshot) => {
+            allUsers = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            buildCustomersBase();
+            renderCustomersList();
+        }, (error) => {
+            console.error("Erro Realtime Usuários:", error);
+        });
+
+        // --- 2. OUVINTE EM TEMPO REAL DE PEDIDOS (INCLUI WEBHOOK AUTOMÁTICO) ---
         onSnapshot(query(collection(db, 'pedidos'), orderBy('dataCriacao', 'desc')), (snapshot) => {
             const fetchedOrders = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
             
@@ -942,23 +960,39 @@
             previousOrdersLength = fetchedOrders.length;
             allOrders = fetchedOrders;
 
-            buildCustomersBase();
+            buildCustomersBase(); 
 
             renderOrderDashboard();
-            renderOrdersList();
+            renderOrdersList(); // ← Move os pedidos instantaneamente do webhook de pendente para pago aqui
             renderCustomersList();
         }, (error) => {
             console.error("Erro Realtime Pedidos:", error);
             if(error.code !== 'permission-denied') window.showToast("Erro ao sincronizar ao vivo.", "error");
         });
 
-        // --- CONSTRUTOR DE BASE DE CLIENTES (CRM) ---
+        // --- 3. CONSTRUTOR PROFISSIONAL DE CLIENTES (CRM) ---
         function buildCustomersBase() {
             const map = new Map();
 
+            // Insere primeiro a base real de usuários (collection usuarios)
+            allUsers.forEach(u => {
+                const key = u.email ? u.email.toLowerCase().trim() : (u.telefone || u.id);
+                map.set(key, {
+                    ...u,
+                    idCliente: key,
+                    totalGasto: 0,
+                    qtdPedidos: 0,
+                    pedidosPagos: 0,
+                    pedidosPendentes: 0,
+                    ultimoPedido: null,
+                    dataCadastro: u.dataCriacao || u.createdAt || null,
+                    pedidos: []
+                });
+            });
+
+            // Adiciona e correlaciona o histórico vitalício de pedidos (collection pedidos)
             allOrders.forEach(o => {
                 if (!o.cliente) return;
-                
                 const key = o.cliente.email ? o.cliente.email.toLowerCase().trim() : (o.cliente.telefone || 'sem-contato');
                 
                 if (!map.has(key)) {
@@ -974,7 +1008,7 @@
                         pedidos: []
                     });
                 }
-                
+
                 const c = map.get(key);
                 const valorTotalPedido = parseFloat(o.valorTotal || o.total || 0);
 
@@ -994,9 +1028,13 @@
                     c.ultimoPedido = o.dataCriacao;
                 }
                 
-                const currentCadastro = c.dataCadastro ? new Date(c.dataCadastro) : new Date();
-                if(orderDate < currentCadastro && o.dataCriacao) {
+                if (!c.dataCadastro && o.dataCriacao) {
                     c.dataCadastro = o.dataCriacao;
+                }
+
+                // Atualiza/Complementa endereço se o pedido tiver mais detalhes que a base central
+                if(o.cliente.endereco && (!c.endereco || Object.keys(c.endereco).length === 0)) {
+                    c.endereco = o.cliente.endereco;
                 }
             });
 
@@ -1007,7 +1045,7 @@
         }
 
         // ==========================================
-        //  LÓGICA DO DASHBOARD E PEDIDOS
+        //  LÓGICA DO DASHBOARD E GERENCIAMENTO DE PEDIDOS
         // ==========================================
         window.switchOrderTab = function(tab) {
             currentOrderTab = tab;
@@ -1053,7 +1091,6 @@
                 }
             });
 
-            // Proteção contra nulos (Elementos apenas presentes na View de Pedidos)
             if(document.getElementById('dash-faturamento')) document.getElementById('dash-faturamento').textContent = faturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             if(document.getElementById('dash-vendas-hoje')) document.getElementById('dash-vendas-hoje').textContent = vendasHojeVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             if(document.getElementById('dash-pedidos-hoje')) document.getElementById('dash-pedidos-hoje').textContent = pedidosHoje;
@@ -1124,6 +1161,7 @@
                 return true;
             });
 
+            // Regra da ordenação OBRIGATÓRIA: Urgentes Primeiro -> Recentes -> Normais
             filtered.sort((a, b) => {
                 if (currentOrderTab === 'pendentes') {
                     if (a.urgente && !b.urgente) return -1;
@@ -1374,6 +1412,7 @@
             document.getElementById('cm-pendentes').textContent = cliente.pedidosPendentes;
 
             document.getElementById('cm-cadastro').textContent = cliente.dataCadastro ? new Date(cliente.dataCadastro).toLocaleDateString('pt-BR') : '--';
+            document.getElementById('cm-nascimento').textContent = cliente.dataNascimento || cliente.nascimento || '--';
             document.getElementById('cm-ultima-compra').textContent = cliente.ultimoPedido ? new Date(cliente.ultimoPedido).toLocaleDateString('pt-BR') : '--';
             
             const end = cliente.endereco || {};
@@ -1470,7 +1509,6 @@
                     if (fileInput.files.length === 0) throw new Error("Selecione pelo menos uma imagem.");
                     if (fileInput.files.length > 5) throw new Error("Por favor, selecione no máximo 5 imagens.");
                     const filesArray = Array.from(fileInput.files);
-                    // Supondo que você tenha a função compressImage (se não tiver, este envio localmente via arquivo precisará de storage Firebase - aqui usamos a lógica que já estava descrita na estrutura original).
                     imagensData = await Promise.all(filesArray.map(file => compressImage(file))); 
                 }
 
@@ -1645,7 +1683,6 @@
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Inicializar inputs e listeners comuns da vitrine
             const precoInput = document.getElementById('preco');
             if (precoInput) {
                 precoInput.addEventListener('input', function(e) {
@@ -1665,24 +1702,10 @@
             const sortFilter = document.getElementById('sort-filter');
             if(sortFilter) sortFilter.addEventListener('change', () => window.renderProductsVitrine());
 
-            // Carrega Vitrine (a de pedidos e clientes já carrega via onSnapshot)
+            // Carrega Vitrine Inicial
             window.loadProducts();
             
-            // --- SCRIPT DE LIMPEZA MANTIDO ---
-            getDocs(collection(db, "pedidos")).then(snap => {
-                let excluidos = 0;
-                snap.forEach(d => {
-                    const data = d.data();
-                    const email = data.cliente?.email || '';
-                    const nome = data.cliente?.nome || 'Cliente Anônimo';
-                    const isAnonimo = nome.toLowerCase().includes('anônimo') || nome.toLowerCase().includes('anonimo');
-                    if(email === 'gabrielalencar687@gmail.com' || email === 'ragakids123@gmail.com' || email === 'gabrielalencar6492@gmail.com' || isAnonimo) {
-                        deleteDoc(doc(db, "pedidos", d.id));
-                        excluidos++;
-                    }
-                });
-                if(excluidos > 0) setTimeout(() => window.showToast(`${excluidos} pedido(s) excluído(s) na limpeza!`), 2000);
-            }).catch(console.error);
+            // ATENÇÃO: O SCRIPT DE LIMPEZA DELETAVA PEDIDOS FOI DEFINITIVAMENTE REMOVIDO PARA PROTEGER OS DADOS.
         });
 
     </script>
