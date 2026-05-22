@@ -339,6 +339,26 @@
             </div>
 
             <div class="lg:col-span-8">
+                <section class="glass-panel p-8 sm:p-10 rounded-[2rem] min-h-[260px] mb-10">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-6 border-b border-gray-200/50 pb-6">
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <h2 class="font-serif text-4xl font-bold text-dark">Clientes</h2>
+                                <span id="customers-count" class="bg-gold text-white text-[10px] font-black px-3 py-1 rounded-full shadow-sm">0</span>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2 font-medium">Contas e enderecos salvos em tempo real.</p>
+                        </div>
+                        <button onclick="window.loadCustomers()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gold-dark hover:text-gold transition-colors bg-gold-light/40 px-5 py-2.5 rounded-full hover:bg-gold-light/60">
+                            <i class="fa-solid fa-rotate-right"></i> Sincronizar Clientes
+                        </button>
+                    </div>
+                    <div id="customers-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                        <div class="flex justify-center py-10 text-gold">
+                            <div class="loader border-4 border-gold border-t-transparent rounded-full w-10 h-10 shadow-glow"></div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="glass-panel p-8 sm:p-10 rounded-[2rem] min-h-[360px] mb-10">
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-6 border-b border-gray-200/50 pb-6">
                         <div>
@@ -363,7 +383,7 @@
                             <select id="order-status-filter" class="input-field w-full pl-11 pr-8 py-3 rounded-xl text-sm font-semibold text-dark appearance-none cursor-pointer relative z-0">
                                 <option value="">Todos os status</option>
                                 <option value="aguardando_pagamento">Aguardando pagamento</option>
-                                <option value="pagamento_confirmado">Pagamento confirmado</option>
+                                <option value="pagamento_aprovado">Pagamento aprovado</option>
                                 <option value="preparando">Preparando pedido</option>
                                 <option value="enviado">Enviado</option>
                                 <option value="entregue">Entregue</option>
@@ -511,9 +531,11 @@
         window.COLLECTION_NAME = COLLECTION_NAME;
         window.PRODUCT_COLLECTION_NAME = PRODUCT_COLLECTION_NAME;
         window.adminOrders = [];
+        window.adminUsers = [];
         window.adminNotifications = [];
         window.seenPaidOrderIds = new Set(JSON.parse(localStorage.getItem('fabis_seen_paid_orders') || '[]'));
         let unsubscribeOrders = null;
+        let unsubscribeUsers = null;
         let unsubscribeNotifications = null;
         let unsubscribeSnapshot = null;
         
@@ -562,6 +584,7 @@
             window.currentAdmin = null;
             if(unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
             if(unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
+            if(unsubscribeUsers) { unsubscribeUsers(); unsubscribeUsers = null; }
             if(unsubscribeNotifications) { unsubscribeNotifications(); unsubscribeNotifications = null; }
         };
 
@@ -573,6 +596,7 @@
                 ...adminData
             };
             if(typeof window.loadProducts === 'function') window.loadProducts();
+            if(typeof window.loadCustomers === 'function') window.loadCustomers();
             if(typeof window.loadOrders === 'function') window.loadOrders();
             if(typeof window.loadAdminNotifications === 'function') window.loadAdminNotifications();
         };
@@ -587,6 +611,7 @@
                 pago: "pago",
                 paid: "pago",
                 approved: "pago",
+                aprovado: "pago",
                 success: "pago",
                 pagamento_aprovado: "pago",
                 pagamento_confirmado: "pago",
@@ -610,10 +635,11 @@
             const map = {
                 novo: "aguardando_pagamento",
                 separacao: "preparando",
+                separando: "preparando",
                 separando_pedido: "preparando",
                 preparando: "preparando",
-                pagamento_aprovado: "pagamento_confirmado",
-                pagamento_confirmado: "pagamento_confirmado",
+                pagamento_aprovado: "pagamento_aprovado",
+                pagamento_confirmado: "pagamento_aprovado",
                 aguardando_pagamento: "aguardando_pagamento",
                 enviado: "enviado",
                 entregue: "entregue",
@@ -632,6 +658,7 @@
                 pendente: ["Aguardando pagamento", "bg-yellow-50 text-yellow-700 border-yellow-200", "fa-clock"],
                 pago: ["Pagamento confirmado", "bg-green-50 text-green-700 border-green-200", "fa-circle-check"],
                 pagamento_confirmado: ["Pagamento confirmado", "bg-green-50 text-green-700 border-green-200", "fa-circle-check"],
+                pagamento_aprovado: ["Pagamento aprovado", "bg-green-50 text-green-700 border-green-200", "fa-circle-check"],
                 pagamento_recusado: ["Pagamento recusado", "bg-red-50 text-red-700 border-red-200", "fa-circle-xmark"],
                 pagamento_expirado: ["Pagamento expirado", "bg-gray-50 text-gray-700 border-gray-200", "fa-hourglass-end"],
                 recusado: ["Pagamento recusado", "bg-red-50 text-red-700 border-red-200", "fa-circle-xmark"],
@@ -908,6 +935,105 @@
         };
 
         // ===== LÓGICA DE EDIÇÃO =====
+        window.toDateSafe = function(value) {
+            if(!value) return null;
+            if(value.toDate) return value.toDate();
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        };
+
+        window.openWhatsApp = function(phone, message) {
+            const digits = String(phone || "").replace(/\D/g, "");
+            if(!digits) {
+                window.showToast("Telefone do cliente não encontrado.", "error");
+                return;
+            }
+            const phoneWithCountry = digits.startsWith("55") ? digits : `55${digits}`;
+            window.open(`https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`, "_blank");
+        };
+
+        window.adminInfo = function(value) {
+            const text = String(value ?? "").trim();
+            return text || "Não informado";
+        };
+
+        window.readAdminCustomerAddress = function(user) {
+            const principal = user.enderecoPrincipal || user.address || user.shippingAddress || {};
+            return {
+                cep: principal.cep || user.cep || "",
+                rua: principal.rua || principal.street || user.rua || user.endereco || "",
+                numero: principal.numero || principal.number || user.numero || "",
+                complemento: principal.complemento || principal.complement || principal.comp || user.complemento || "",
+                bairro: principal.bairro || principal.district || user.bairro || "",
+                cidade: principal.cidade || principal.city || user.cidade || "",
+                uf: principal.uf || principal.state || user.uf || user.estado || ""
+            };
+        };
+
+        window.loadCustomers = function() {
+            const grid = document.getElementById("customers-grid");
+            if(!grid) return;
+            grid.innerHTML = '<div class="flex justify-center py-10 text-gold"><div class="loader border-4 border-gold border-t-transparent rounded-full w-10 h-10 shadow-glow"></div></div>';
+            if(unsubscribeUsers) unsubscribeUsers();
+
+            unsubscribeUsers = onSnapshot(collection(db, "usuarios"), (snapshot) => {
+                window.adminUsers = [];
+                snapshot.forEach((docSnap) => window.adminUsers.push({ id: docSnap.id, ...docSnap.data() }));
+                window.adminUsers.sort((a, b) => {
+                    const dateA = window.toDateSafe(a.updatedAt) || window.toDateSafe(a.createdAt) || new Date(0);
+                    const dateB = window.toDateSafe(b.updatedAt) || window.toDateSafe(b.createdAt) || new Date(0);
+                    return dateB - dateA;
+                });
+                window.renderCustomers();
+            }, (error) => {
+                console.error("Erro clientes:", error);
+                grid.innerHTML = '<div class="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-6 text-center font-bold">Erro ao carregar clientes em tempo real.</div>';
+            });
+        };
+
+        window.renderCustomers = function() {
+            const grid = document.getElementById("customers-grid");
+            const count = document.getElementById("customers-count");
+            if(!grid) return;
+            if(count) count.textContent = window.adminUsers.length;
+            if(window.adminUsers.length === 0) {
+                grid.innerHTML = '<div class="bg-white/70 border border-gray-100 rounded-2xl p-8 text-center text-gray-400 font-semibold">Nenhum cliente encontrado.</div>';
+                return;
+            }
+
+            grid.innerHTML = window.adminUsers.map(user => {
+                const address = window.readAdminCustomerAddress(user);
+                const nome = user.nome || user.nomeCompleto || user.name || "";
+                const addressText = [
+                    address.rua,
+                    address.numero,
+                    address.complemento,
+                    address.bairro,
+                    address.cidade && address.uf ? `${address.cidade}/${address.uf}` : address.cidade || address.uf,
+                    address.cep
+                ].filter(Boolean).join(", ");
+
+                return `
+                    <article class="bg-white/85 border border-white/80 rounded-[1.5rem] p-5 shadow-sm">
+                        <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                            <div>
+                                <h3 class="font-serif text-2xl font-bold text-dark">${window.escapeHtml(window.adminInfo(nome))}</h3>
+                                <p class="text-[10px] uppercase tracking-widest font-black text-gold-dark mt-1">${window.escapeHtml(window.adminInfo(user.userId || user.uid || user.id))}</p>
+                            </div>
+                            <button onclick="window.openWhatsApp('${window.escapeHtml(user.telefone || user.phone || "")}', 'Ola, ${window.escapeHtml((nome || "cliente").split(" ")[0])}. Aqui e da Fabis Lacos.')" class="bg-gradient-to-r from-[#25D366] to-[#1DA851] text-white text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-xl">WhatsApp</button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600 font-medium">
+                            <div><strong class="text-dark">E-mail:</strong> ${window.escapeHtml(window.adminInfo(user.email))}</div>
+                            <div><strong class="text-dark">Telefone:</strong> ${window.escapeHtml(window.adminInfo(user.telefone || user.phone))}</div>
+                            <div><strong class="text-dark">CPF:</strong> ${window.escapeHtml(window.adminInfo(user.cpf))}</div>
+                            <div><strong class="text-dark">Pedidos:</strong> ${Number(user.totalPedidos || 0)}</div>
+                            <div class="sm:col-span-2"><strong class="text-dark">Endereco:</strong> ${window.escapeHtml(window.adminInfo(addressText))}</div>
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        };
+
         window.loadOrders = function() {
             const grid = document.getElementById('orders-grid');
             grid.innerHTML = '<div class="flex justify-center py-16 text-gold"><div class="loader border-4 border-gold border-t-transparent rounded-full w-10 h-10 shadow-glow"></div></div>';
@@ -951,7 +1077,7 @@
                 grid.innerHTML = '<div class="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-6 text-center font-bold">Erro ao carregar pedidos. Verifique permissao do admin.</div>';
             });
 
-            unsubscribeOrders = listenOrders("orders");
+            unsubscribeOrders = listenOrders("pedidos", false);
         };
 
         window.loadAdminNotifications = function() {
@@ -1034,25 +1160,53 @@
         window.renderOrderCard = function(order) {
             const [label, statusClass, icon] = window.getOrderStatusMeta(order);
             const orderId = order.idPedido || order.orderNumber || order.id;
-            const customerName = order.nomeCliente || order.customerName || "Cliente";
-            const customerEmail = order.email || order.customerEmail || "";
-            const customerPhone = order.telefone || order.customerPhone || "";
+            const cliente = order.cliente || {};
+            const customer = order.customer || {};
+            const customerName = cliente.nome || customer.name || order.nomeCliente || order.customerName || "";
+            const customerEmail = cliente.email || customer.email || order.email || order.customerEmail || "";
+            const customerPhone = cliente.telefone || customer.phone_number || customer.phone || order.telefone || order.customerPhone || "";
+            const customerCpf = cliente.cpf || order.customerCPF || order.customerCpf || "";
             const products = order.produtos || order.items || [];
             const total = Number(order.valorTotal || order.total || 0);
-            const createdAt = new Date(order.dataCriacao || order.createdAt || Date.now()).toLocaleString('pt-BR');
-            const paidAt = order.dataPagamento || order.paidAt ? new Date(order.dataPagamento || order.paidAt).toLocaleString('pt-BR') : "Pendente";
-            const paymentId = order.paymentId || "-";
-            const transactionId = order.transactionId || "-";
+            const createdAtDate = window.toDateSafe(order.dataCriacao || order.createdAt);
+            const paidAtDate = window.toDateSafe(order.dataPagamento || order.paidAt);
+            const shippedAtDate = window.toDateSafe(order.dataEnvio || order.shippedAt);
+            const deliveredAtDate = window.toDateSafe(order.dataEntrega || order.deliveredAt);
+            const createdAt = createdAtDate ? createdAtDate.toLocaleString('pt-BR') : window.adminInfo("");
+            const paidAt = paidAtDate ? paidAtDate.toLocaleString('pt-BR') : window.adminInfo("");
+            const shippedAt = shippedAtDate ? shippedAtDate.toLocaleString('pt-BR') : window.adminInfo("");
+            const deliveredAt = deliveredAtDate ? deliveredAtDate.toLocaleString('pt-BR') : window.adminInfo("");
+            const paymentId = order.paymentId || "";
+            const transactionId = order.transaction_nsu || order.transactionId || "";
             const paymentUrl = order.paymentUrl || order.checkoutUrl || "";
+            const receiptUrl = order.receipt_url || order.receiptUrl || order.comprovanteUrl || "";
             const paymentStatus = window.normalizePaymentStatus(order.paymentStatus || order.statusPagamento);
             const paymentStatusLabel = paymentStatus.replace(/_/g, ' ');
             const orderStatusLabel = window.normalizeOrderStatus(order.orderStatus || order.statusPedido).replace(/_/g, ' ');
             const deliveryStatusLabel = window.normalizeOrderStatus(order.deliveryStatus || order.orderStatus || order.statusPedido).replace(/_/g, ' ');
             const gateway = order.gateway || order.paymentProvider || "infinitepay";
             const valorPago = Number(order.valorPago || order.paidAmount || (paymentStatus === "pago" ? total : 0));
-            const address = order.shippingAddress
-                ? `${order.shippingAddress.street || ''}, ${order.shippingAddress.number || ''} - ${order.shippingAddress.neighborhood || order.shippingAddress.district || ''}, ${order.shippingAddress.city || ''}/${order.shippingAddress.state || ''} - ${order.shippingAddress.cep || ''}`
-                : `${order.endereco || ''}, ${order.numero || ''} - ${order.bairro || ''}, ${order.cidade || ''}/${order.estado || ''} - ${order.cep || ''}`;
+            const estoqueAtualizado = order.estoqueAtualizado === true || order.stockUpdated === true;
+            const legacyAddress = order.endereco && typeof order.endereco === "object" ? order.endereco : {};
+            const addressCompat = order.address || {};
+            const shippingAddress = order.shippingAddress || {};
+            const address = {
+                cep: shippingAddress.cep || legacyAddress.cep || addressCompat.cep || order.cep || "",
+                rua: shippingAddress.street || legacyAddress.rua || addressCompat.rua || order.rua || order.enderecoTexto || (typeof order.endereco === "string" ? order.endereco : ""),
+                numero: shippingAddress.number || legacyAddress.numero || addressCompat.numero || order.numero || "",
+                complemento: shippingAddress.complement || legacyAddress.complemento || addressCompat.comp || order.complemento || "",
+                bairro: shippingAddress.neighborhood || shippingAddress.district || legacyAddress.bairro || addressCompat.bairro || order.bairro || "",
+                cidade: shippingAddress.city || legacyAddress.cidade || addressCompat.cidade || order.cidade || "",
+                uf: shippingAddress.state || legacyAddress.uf || addressCompat.uf || order.estado || ""
+            };
+            const addressText = [
+                address.rua,
+                address.numero,
+                address.complemento,
+                address.bairro,
+                [address.cidade, address.uf].filter(Boolean).join("/"),
+                address.cep
+            ].filter(Boolean).join(", ");
             const statusValue = window.normalizeOrderStatus(order.orderStatus || order.statusPedido);
 
             return `
@@ -1079,14 +1233,51 @@
                                 <div><strong class="text-dark">Valor pago:</strong> ${valorPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
                                 <div><strong class="text-dark">Payment ID:</strong> ${window.escapeHtml(paymentId)}</div>
                                 <div><strong class="text-dark">Transação:</strong> ${window.escapeHtml(transactionId)}</div>
+                                <div><strong class="text-dark">Estoque atualizado:</strong> ${estoqueAtualizado ? "Sim" : "Não"}</div>
+                                ${receiptUrl ? `<div><strong class="text-dark">Comprovante:</strong> <a href="${window.escapeHtml(receiptUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir comprovante</a></div>` : ""}
                                 ${paymentUrl ? `<div class="sm:col-span-2"><strong class="text-dark">Link pagamento:</strong> <a href="${window.escapeHtml(paymentUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir link</a></div>` : ""}
-                                <div class="sm:col-span-2"><strong class="text-dark">Endereço:</strong> ${window.escapeHtml(address)}</div>
+                                <div class="sm:col-span-2"><strong class="text-dark">Endereço:</strong> ${window.escapeHtml(window.adminInfo(addressText))}</div>
+                            </div>
+                            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600 font-medium border-t border-gray-100 pt-4">
+                                <p class="sm:col-span-2 text-[10px] uppercase tracking-widest text-gold-dark font-black">Cliente completo</p>
+                                <div><strong class="text-dark">Nome:</strong> ${window.escapeHtml(window.adminInfo(customerName))}</div>
+                                <div><strong class="text-dark">userId:</strong> ${window.escapeHtml(window.adminInfo(order.userId || order.customerId || order.uidCliente))}</div>
+                                <div><strong class="text-dark">E-mail:</strong> ${window.escapeHtml(window.adminInfo(customerEmail))}</div>
+                                <div><strong class="text-dark">Telefone:</strong> ${window.escapeHtml(window.adminInfo(customerPhone))}</div>
+                                <div><strong class="text-dark">CPF:</strong> ${window.escapeHtml(window.adminInfo(customerCpf))}</div>
+                                <div><strong class="text-dark">CEP:</strong> ${window.escapeHtml(window.adminInfo(address.cep))}</div>
+                                <div><strong class="text-dark">Rua:</strong> ${window.escapeHtml(window.adminInfo(address.rua))}</div>
+                                <div><strong class="text-dark">Numero:</strong> ${window.escapeHtml(window.adminInfo(address.numero))}</div>
+                                <div><strong class="text-dark">Complemento:</strong> ${window.escapeHtml(window.adminInfo(address.complemento))}</div>
+                                <div><strong class="text-dark">Bairro:</strong> ${window.escapeHtml(window.adminInfo(address.bairro))}</div>
+                                <div><strong class="text-dark">Cidade:</strong> ${window.escapeHtml(window.adminInfo(address.cidade))}</div>
+                                <div><strong class="text-dark">UF:</strong> ${window.escapeHtml(window.adminInfo(address.uf))}</div>
+
+                                <p class="sm:col-span-2 text-[10px] uppercase tracking-widest text-gold-dark font-black mt-2">Pagamento</p>
+                                <div><strong class="text-dark">statusPagamento:</strong> ${window.escapeHtml(window.adminInfo(order.statusPagamento))}</div>
+                                <div><strong class="text-dark">paymentStatus:</strong> ${window.escapeHtml(window.adminInfo(order.paymentStatus))}</div>
+                                <div><strong class="text-dark">paid:</strong> ${order.paid === true ? "true" : order.paid === false ? "false" : window.adminInfo("")}</div>
+                                <div><strong class="text-dark">gateway:</strong> ${window.escapeHtml(window.adminInfo(gateway))}</div>
+                                <div><strong class="text-dark">transaction_nsu:</strong> ${window.escapeHtml(window.adminInfo(transactionId))}</div>
+                                <div><strong class="text-dark">invoice_slug:</strong> ${window.escapeHtml(window.adminInfo(order.invoice_slug))}</div>
+                                <div><strong class="text-dark">paid_amount:</strong> ${window.escapeHtml(window.adminInfo(order.paid_amount ?? order.paidAmount ?? order.valorPago))}</div>
+                                <div><strong class="text-dark">dataPagamento:</strong> ${window.escapeHtml(paidAt)}</div>
+                                <div class="sm:col-span-2"><strong class="text-dark">checkoutUrl:</strong> ${paymentUrl ? `<a href="${window.escapeHtml(paymentUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir checkout</a>` : window.adminInfo("")}</div>
+                                <div class="sm:col-span-2"><strong class="text-dark">receipt_url:</strong> ${receiptUrl ? `<a href="${window.escapeHtml(receiptUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir comprovante</a>` : window.adminInfo("")}</div>
+
+                                <p class="sm:col-span-2 text-[10px] uppercase tracking-widest text-gold-dark font-black mt-2">Logistica</p>
+                                <div><strong class="text-dark">statusPedido:</strong> ${window.escapeHtml(window.adminInfo(order.statusPedido))}</div>
+                                <div><strong class="text-dark">deliveryStatus:</strong> ${window.escapeHtml(window.adminInfo(order.deliveryStatus))}</div>
+                                <div><strong class="text-dark">Codigo rastreio:</strong> ${window.escapeHtml(window.adminInfo(order.codigoRastreio || order.trackingCode))}</div>
+                                <div><strong class="text-dark">dataEnvio:</strong> ${window.escapeHtml(shippedAt)}</div>
+                                <div><strong class="text-dark">dataEntrega:</strong> ${window.escapeHtml(deliveredAt)}</div>
+                                <div><strong class="text-dark">Estoque:</strong> ${estoqueAtualizado ? "Atualizado" : "Pendente"}</div>
                             </div>
                         </div>
                         <div class="w-full md:w-60 space-y-3">
                             <select id="status-${order.id}" class="input-field w-full px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wide">
                                 <option value="aguardando_pagamento" ${statusValue === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando pagamento</option>
-                                <option value="pagamento_confirmado" ${statusValue === 'pagamento_confirmado' ? 'selected' : ''}>Pagamento confirmado</option>
+                                <option value="pagamento_aprovado" ${statusValue === 'pagamento_aprovado' || statusValue === 'pagamento_confirmado' ? 'selected' : ''}>Pagamento aprovado</option>
                                 <option value="preparando" ${statusValue === 'preparando' ? 'selected' : ''}>Preparando pedido</option>
                                 <option value="enviado" ${statusValue === 'enviado' ? 'selected' : ''}>Enviado</option>
                                 <option value="entregue" ${statusValue === 'entregue' ? 'selected' : ''}>Entregue</option>
@@ -1095,6 +1286,8 @@
                             <input id="track-code-${order.id}" value="${window.escapeHtml(order.trackingCode || order.codigoRastreio || '')}" placeholder="Código de rastreio" class="input-field w-full px-4 py-3 rounded-xl text-xs font-semibold">
                             <input id="track-url-${order.id}" value="${window.escapeHtml(order.trackingUrl || order.linkRastreio || '')}" placeholder="Link de rastreio" class="input-field w-full px-4 py-3 rounded-xl text-xs font-semibold">
                             <button onclick="window.updateOrderStatus('${order.id}')" class="w-full bg-dark text-white text-[10px] uppercase tracking-widest font-bold py-3 rounded-xl hover:bg-gold transition-colors">Salvar Status</button>
+                            <button onclick="window.openOrderWhatsApp('${order.id}')" class="w-full bg-gradient-to-r from-[#25D366] to-[#1DA851] text-white text-[10px] uppercase tracking-widest font-bold py-3 rounded-xl hover:shadow-lg transition-colors flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp text-base"></i> WhatsApp Cliente</button>
+                            <button onclick="window.filterCustomerHistory('${order.id}')" class="w-full bg-white border border-gray-200 text-dark text-[10px] uppercase tracking-widest font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors">Histórico Cliente</button>
                             <button onclick="window.openOrderLogs('${order.id}')" class="w-full bg-gold-light/60 text-gold-dark text-[10px] uppercase tracking-widest font-bold py-3 rounded-xl hover:bg-gold-light transition-colors">Ver Logs</button>
                         </div>
                     </div>
@@ -1103,11 +1296,17 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             ${products.map(item => `
                                 <div class="flex gap-3 bg-gray-50 rounded-2xl p-3">
-                                    <img src="${item.imagem || item.image || ''}" class="w-14 h-16 rounded-xl object-cover bg-gray-100" alt="">
+                                    ${item.imagem || item.image
+                                        ? `<img src="${item.imagem || item.image}" class="w-14 h-16 rounded-xl object-cover bg-gray-100" alt="">`
+                                        : `<div class="w-14 h-16 rounded-xl bg-gray-100 text-[9px] text-gray-400 font-bold flex items-center justify-center text-center px-1">Não informado</div>`}
                                     <div class="text-xs">
-                                        <p class="font-bold text-dark">${window.escapeHtml(item.nome || item.name)}</p>
-                                        <p class="text-gray-500 mt-1">Tam: ${window.escapeHtml(item.tamanho || item.variation || item.size || 'Único')} | Qtd: ${Number(item.quantity || item.quantidade || 1)}</p>
-                                        <p class="font-bold text-gold-dark mt-1">${Number(item.preco || item.unitPrice || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                        <p class="font-bold text-dark">${window.escapeHtml(window.adminInfo(item.nome || item.name))}</p>
+                                        <p class="text-gray-500 mt-1">productId: ${window.escapeHtml(window.adminInfo(item.productId || item.id))}</p>
+                                        <p class="text-gray-500 mt-1">Qtd: ${window.escapeHtml(window.adminInfo(item.quantity ?? item.quantidade))} | Tam: ${window.escapeHtml(window.adminInfo(item.tamanho || item.variation || item.size))}</p>
+                                        <p class="text-gray-500 mt-1">Cor: ${window.escapeHtml(window.adminInfo(item.cor || item.color))}</p>
+                                        <p class="text-gray-500 mt-1">Categoria: ${window.escapeHtml(window.adminInfo(item.categoria || item.category))} | Sub: ${window.escapeHtml(window.adminInfo(item.subcategoria || item.subcategory))}</p>
+                                        <p class="font-bold text-gold-dark mt-1">Unitario: ${Number(item.price || item.preco || item.unitPrice || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                        <p class="font-bold text-dark mt-1">Total: ${Number(item.total || item.subtotal || (Number(item.price || item.preco || item.unitPrice || 0) * Number(item.quantity || item.quantidade || 1)) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                                     </div>
                                 </div>
                             `).join('')}
@@ -1115,6 +1314,37 @@
                     </div>
                 </article>
             `;
+        };
+
+        window.openOrderWhatsApp = function(orderId) {
+            const order = window.adminOrders.find(item => item.id === orderId || item.orderNumber === orderId || item.idPedido === orderId);
+            if(!order) return;
+            const customerName = order.nomeCliente || order.customerName || "cliente";
+            const customerPhone = order.telefone || order.customerPhone || "";
+            const displayId = order.idPedido || order.orderNumber || order.id || orderId;
+            const paymentStatus = window.normalizePaymentStatus(order.paymentStatus || order.statusPagamento);
+            const orderStatus = window.normalizeOrderStatus(order.deliveryStatus || order.orderStatus || order.statusPedido);
+            const trackingCode = order.trackingCode || order.codigoRastreio || "";
+            let message = `Olá, ${customerName}. Seu pedido ${displayId} está aguardando pagamento. Posso te ajudar a finalizar?`;
+
+            if(paymentStatus === "pago" && orderStatus === "enviado") {
+                message = `Olá, ${customerName}. Seu pedido saiu para entrega. Código de rastreio: ${trackingCode || "em breve"}.`;
+            } else if(paymentStatus === "pago" && orderStatus === "entregue") {
+                message = `Olá, ${customerName}. Seu pedido foi entregue. Esperamos que tenha amado sua escolha.`;
+            } else if(paymentStatus === "pago") {
+                message = `Olá, ${customerName}. Seu pedido ${displayId} foi confirmado. Já estamos preparando com carinho.`;
+            }
+
+            window.openWhatsApp(customerPhone, message);
+        };
+
+        window.filterCustomerHistory = function(orderId) {
+            const order = window.adminOrders.find(item => item.id === orderId || item.orderNumber === orderId || item.idPedido === orderId);
+            if(!order) return;
+            const queryText = order.customerEmail || order.email || order.customerPhone || order.telefone || order.customerId || order.userId || "";
+            document.getElementById("order-search-input").value = queryText;
+            window.renderOrders();
+            window.showToast("Histórico do cliente filtrado.");
         };
 
         window.updateOrderStatus = async function(orderId) {
@@ -1136,16 +1366,14 @@
                     linkRastreio: trackingUrl
                 };
 
-                if (statusSelecionado === "pagamento_confirmado") {
-                    update.statusPagamento = "aprovado";
-                    update.paymentStatus = "paid";
-                    update.paid = true;
-                    update.aprovacao = "Aprovado";
-                    update.valorPago = total;
-                    update.dataPagamento = agora;
-                    update.statusPedido = "pagamento_confirmado";
-                    update.deliveryStatus = "pagamento_confirmado";
-                    update.orderStatus = "pagamento_confirmado";
+                if (statusSelecionado === "pagamento_aprovado" || statusSelecionado === "pagamento_confirmado") {
+                    if(window.normalizePaymentStatus(currentOrder.paymentStatus || currentOrder.statusPagamento) !== "pago") {
+                        window.showToast("Pagamento só pode ser aprovado pelo webhook/consulta real da InfinitePay.", "error");
+                        return;
+                    }
+                    update.statusPedido = "pagamento_aprovado";
+                    update.deliveryStatus = "pagamento_aprovado";
+                    update.orderStatus = "pagamento_aprovado";
                 } else if (statusSelecionado === "preparando") {
                     update.statusPedido = "preparando";
                     update.deliveryStatus = "preparando";
@@ -1155,12 +1383,15 @@
                     update.deliveryStatus = "enviado";
                     update.orderStatus = "enviado";
                     update.shippedAt = agora;
+                    update.dataEnvio = agora;
                 } else if (statusSelecionado === "entregue") {
                     update.statusPedido = "entregue";
                     update.deliveryStatus = "entregue";
                     update.orderStatus = "entregue";
                     update.dataEntrega = agora;
                     update.deliveredAt = agora;
+                    update.entregue = true;
+                    update.etapa = "Experiência concluída";
                 } else if (statusSelecionado === "cancelado") {
                     update.statusPedido = "cancelado";
                     update.deliveryStatus = "cancelado";
@@ -1463,6 +1694,12 @@
                     corNome: corNome,
                     linkPagamento: document.getElementById('linkPagamento').value || "",
                     quantidade: quantidadeTotal, // Salva o total calculado para checagem rápida no Frontend
+                    estoque: quantidadeTotal,
+                    disponivel: quantidadeTotal > 0,
+                    indisponivel: quantidadeTotal <= 0,
+                    ativo: quantidadeTotal > 0,
+                    active: quantidadeTotal > 0,
+                    status: quantidadeTotal > 0 ? "ativo" : "indisponivel",
                     imagens: imagensData,
                     imagem: imagensData[0]
                 };
