@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo - Fabis Laços</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -124,7 +121,6 @@
 </head>
 <body class="text-gray-800 antialiased selection:bg-gold selection:text-white relative pb-20">
 
-    <!-- Header Flutuante -->
     <header class="sticky top-4 z-40 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="glass-panel rounded-2xl py-3 px-6 flex justify-between items-center">
             <div class="flex items-center gap-4">
@@ -149,11 +145,9 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-2">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
             
-            <!-- Coluna da Esquerda: Formulário -->
             <div class="lg:col-span-4">
                 <form id="product-form" class="glass-panel p-8 rounded-[2rem] flex flex-col relative transition-all hover:shadow-glass-hover">
                     
@@ -165,7 +159,6 @@
                     
                     <div class="space-y-6 pb-6">
                         
-                        <!-- Nome -->
                         <div class="relative">
                             <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nome da Peça *</label>
                             <div class="relative group">
@@ -174,7 +167,6 @@
                             </div>
                         </div>
 
-                        <!-- Descrição -->
                         <div class="relative">
                             <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Descrição *</label>
                             <div class="relative group">
@@ -183,7 +175,6 @@
                             </div>
                         </div>
 
-                        <!-- Preço e Categoria -->
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Preço (R$) *</label>
@@ -202,10 +193,8 @@
                             </div>
                         </div>
 
-                        <!-- Tamanho e Gênero (Menus Customizados) -->
                         <div class="grid grid-cols-2 gap-4 relative z-30" id="dropdowns-container">
                             
-                            <!-- Tamanho Dropdown (MULTI-SELECT) -->
                             <div class="relative" id="tamanho-wrapper">
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Tamanho (Múltiplo)</label>
                                 <div class="relative">
@@ -215,7 +204,6 @@
                                         <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 shrink-0 ml-1"></i>
                                     </div>
                                     
-                                    <!-- Opções -->
                                     <div id="tamanho-options" class="custom-options absolute top-full left-0 w-full mt-2 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl rounded-xl z-50 hidden max-h-56 overflow-y-auto custom-scrollbar p-1">
                                         <div class="px-3 py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50/80 sticky top-0 rounded-md">Letras</div>
                                         <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="P">P</div>
@@ -223,7 +211,6 @@
                                         <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="G">G</div>
                                         
                                         <div class="px-3 py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50/80 sticky top-0 rounded-md mt-1">Números</div>
-                                        <!-- Gerando números de 0 a 18 -->
                                         <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="0">0</div>
                                         <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="1">1</div>
                                         <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="2">2</div>
@@ -248,7 +235,6 @@
                                 </div>
                             </div>
 
-                            <!-- Gênero Dropdown -->
                             <div class="relative" id="genero-wrapper">
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Gênero</label>
                                 <div class="relative">
@@ -269,15 +255,12 @@
 
                         </div>
 
-                        <!-- Cor do Produto -->
                         <div class="relative z-20">
                             <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Cor Predominante</label>
                             <div class="flex items-center gap-3">
-                                <!-- Seletor Visual de Cor -->
                                 <div class="relative h-[46px] w-[46px] shrink-0 rounded-xl overflow-hidden border-[1.5px] border-gray-200 shadow-sm cursor-pointer focus-within:border-gold hover:border-gold transition-colors">
                                     <input type="color" id="corHex" value="#D4AF37" class="absolute -top-4 -left-4 w-24 h-24 cursor-pointer">
                                 </div>
-                                <!-- Nome da Cor -->
                                 <div class="relative flex-1 group">
                                     <i class="fa-solid fa-palette text-gray-400 absolute left-4 top-3.5 group-focus-within:text-gold transition-colors"></i>
                                     <input type="text" id="corNome" placeholder="Ex: Rosa Bebê, Dourado..." class="input-field w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold text-dark placeholder-gray-300">
@@ -285,10 +268,8 @@
                             </div>
                         </div>
 
-                        <!-- Link InfinitePay e Quantidade -->
                         <div class="grid grid-cols-1 gap-4 relative z-10" id="pagamento-quantidade-container">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <!-- Link de Pagamento -->
                                 <div class="relative">
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Link de Pagamento (Opcional)</label>
                                     <div class="relative group">
@@ -296,7 +277,6 @@
                                         <input type="url" id="linkPagamento" placeholder="https://pay.infinitepay.io/..." class="input-field w-full pl-11 pr-4 py-3 rounded-xl text-sm font-medium text-dark placeholder-gray-300">
                                     </div>
                                 </div>
-                                <!-- Quantidade em Estoque (Exibida se nenhum tamanho for selecionado) -->
                                 <div class="relative" id="estoque-geral-section">
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Estoque Geral *</label>
                                     <div class="relative group">
@@ -306,16 +286,13 @@
                                 </div>
                             </div>
                             
-                            <!-- Area dinâmica para quantidades por tamanho -->
                             <div class="col-span-full bg-gold/5 rounded-2xl p-5 border border-gold/20 hidden shadow-inner transition-all duration-300" id="estoque-tamanhos-section">
                                 <label class="block text-[10px] font-bold text-gold-dark uppercase tracking-widest mb-4 text-center"><i class="fa-solid fa-boxes-stacked mr-1"></i> Quantidade por Tamanho Selecionado</label>
                                 <div id="estoque-tamanhos-container" class="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                    <!-- Campos gerados via Javascript aparecerão aqui -->
-                                </div>
+                                    </div>
                             </div>
                         </div>
 
-                        <!-- Upload de Imagem Refinado (Suporta Múltiplas) -->
                         <div class="border-2 border-dashed border-gold/40 bg-gold/5 rounded-[1.5rem] p-6 relative z-10 hover:bg-gold/10 hover:border-gold transition-all duration-300 group">
                             <label class="block text-[10px] font-bold text-gold-dark uppercase tracking-widest mb-4 text-center">Fotografia(s) da Peça *</label>
                             
@@ -345,10 +322,8 @@
                         </div>
                     </div>
 
-                    <!-- Botões Submit / Cancelar -->
                     <div class="pt-2 mt-2 z-10 space-y-3">
                         <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-gold to-gold-dark text-white font-bold py-4 rounded-xl shadow-glow hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:-translate-y-1 transition-all duration-300 flex justify-center items-center gap-3 relative overflow-hidden group">
-                            <!-- Efeito de brilho ao passar o mouse -->
                             <div class="absolute inset-0 w-full h-full bg-white/20 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] skew-x-12"></div>
                             
                             <i class="fa-solid fa-plus text-sm" id="btn-icon"></i>
@@ -363,7 +338,6 @@
                 </form>
             </div>
 
-            <!-- Coluna da Direita: Listagem -->
             <div class="lg:col-span-8">
                 <section class="glass-panel p-8 sm:p-10 rounded-[2rem] min-h-[360px] mb-10">
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-6 border-b border-gray-200/50 pb-6">
@@ -389,15 +363,11 @@
                             <select id="order-status-filter" class="input-field w-full pl-11 pr-8 py-3 rounded-xl text-sm font-semibold text-dark appearance-none cursor-pointer relative z-0">
                                 <option value="">Todos os status</option>
                                 <option value="aguardando_pagamento">Aguardando pagamento</option>
-                                <option value="pago">Pago</option>
                                 <option value="pagamento_confirmado">Pagamento confirmado</option>
-                                <option value="pagamento_recusado">Pagamento recusado</option>
-                                <option value="pagamento_expirado">Pagamento expirado</option>
-                                <option value="separando_pedido">Separando pedido</option>
+                                <option value="preparando">Preparando pedido</option>
                                 <option value="enviado">Enviado</option>
                                 <option value="entregue">Entregue</option>
                                 <option value="cancelado">Cancelado</option>
-                                <option value="reembolsado">Reembolsado</option>
                             </select>
                             <i class="fa-solid fa-chevron-down text-gray-400 absolute right-4 top-4 text-[10px] pointer-events-none z-10"></i>
                         </div>
@@ -422,15 +392,12 @@
                         </button>
                     </div>
 
-                    <!-- NOVA BARRA DE FERRAMENTAS: Pesquisa e Filtros -->
                     <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                        <!-- Search -->
                         <div class="relative flex-1 group">
                             <i class="fa-solid fa-magnifying-glass text-gray-400 absolute left-4 top-3.5 group-focus-within:text-gold transition-colors"></i>
                             <input type="text" id="search-input" placeholder="Pesquisar por nome ou detalhes..." class="input-field w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold text-dark placeholder-gray-400">
                         </div>
                         
-                        <!-- Categoria Filter -->
                         <div class="relative w-full sm:w-48 group">
                             <i class="fa-solid fa-layer-group text-gray-400 absolute left-4 top-3.5 group-focus-within:text-gold transition-colors z-10"></i>
                             <select id="category-filter" class="input-field w-full pl-11 pr-8 py-3 rounded-xl text-sm font-semibold text-dark appearance-none cursor-pointer relative z-0">
@@ -439,7 +406,6 @@
                             <i class="fa-solid fa-chevron-down text-gray-400 absolute right-4 top-4 text-[10px] pointer-events-none z-10"></i>
                         </div>
                         
-                        <!-- Ordenação Filter -->
                         <div class="relative w-full sm:w-56 group">
                             <i class="fa-solid fa-arrow-down-short-wide text-gray-400 absolute left-4 top-3.5 group-focus-within:text-gold transition-colors z-10"></i>
                             <select id="sort-filter" class="input-field w-full pl-11 pr-8 py-3 rounded-xl text-sm font-semibold text-dark appearance-none cursor-pointer relative z-0">
@@ -452,7 +418,6 @@
                         </div>
                     </div>
 
-                    <!-- Grid de Produtos -->
                     <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-10">
                         <div class="col-span-full flex justify-center py-32 text-gold">
                             <div class="loader border-4 border-gold border-t-transparent rounded-full w-12 h-12 shadow-glow"></div>
@@ -464,7 +429,6 @@
         </div>
     </main>
 
-    <!-- Modal de Confirmação de Exclusão -->
     <div id="delete-modal" class="fixed inset-0 bg-dark/70 backdrop-blur-md z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-400">
         <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-all duration-400 relative overflow-hidden" id="delete-modal-content">
             <div class="absolute top-0 left-0 w-full h-1.5 bg-red-500"></div>
@@ -496,20 +460,17 @@
         </div>
     </div>
 
-    <!-- Toast Notification Elegante -->
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-8 py-4 rounded-[1.5rem] text-white shadow-2xl font-semibold text-sm transition-all duration-500 transform translate-y-20 opacity-0 z-50 flex items-center gap-4 backdrop-blur-md min-w-[320px] justify-center border border-white/20">
         <i id="toast-icon" class="text-xl"></i>
         <span id="toast-message" class="tracking-wide"></span>
     </div>
 
-    <!-- Efeito Shimmer para Botão -->
     <style>
         @keyframes shimmer {
             100% { transform: translateX(100%); }
         }
     </style>
 
-    <!-- Scripts JavaScript -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
         import { getFirestore, addDoc, collection, deleteDoc, doc, updateDoc, orderBy, query, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
@@ -648,8 +609,9 @@
             const value = String(status || "").toLowerCase();
             const map = {
                 novo: "aguardando_pagamento",
-                separacao: "separando_pedido",
-                separando_pedido: "separando_pedido",
+                separacao: "preparando",
+                separando_pedido: "preparando",
+                preparando: "preparando",
                 pagamento_aprovado: "pagamento_confirmado",
                 pagamento_confirmado: "pagamento_confirmado",
                 aguardando_pagamento: "aguardando_pagamento",
@@ -674,7 +636,8 @@
                 pagamento_expirado: ["Pagamento expirado", "bg-gray-50 text-gray-700 border-gray-200", "fa-hourglass-end"],
                 recusado: ["Pagamento recusado", "bg-red-50 text-red-700 border-red-200", "fa-circle-xmark"],
                 expirado: ["Pagamento expirado", "bg-gray-50 text-gray-700 border-gray-200", "fa-hourglass-end"],
-                separando_pedido: ["Separando pedido", "bg-blue-50 text-blue-700 border-blue-200", "fa-box-open"],
+                preparando: ["Preparando pedido", "bg-blue-50 text-blue-700 border-blue-200", "fa-box-open"],
+                separando_pedido: ["Preparando pedido", "bg-blue-50 text-blue-700 border-blue-200", "fa-box-open"],
                 enviado: ["Enviado", "bg-orange-50 text-orange-700 border-orange-200", "fa-truck-fast"],
                 entregue: ["Entregue", "bg-emerald-50 text-emerald-700 border-emerald-200", "fa-circle-check"],
                 cancelado: ["Cancelado", "bg-red-50 text-red-700 border-red-200", "fa-ban"],
@@ -776,16 +739,16 @@
             options.querySelectorAll('.custom-option').forEach(item => {
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const value = e.target.getAttribute('data-value');
+                    const value = item.getAttribute('data-value');
                     
                     if (selectedValues.includes(value)) {
                         selectedValues = selectedValues.filter(v => v !== value);
-                        e.target.classList.remove('bg-gold', 'text-white');
-                        e.target.classList.add('hover:bg-gold-light', 'hover:text-gold-dark');
+                        item.classList.remove('bg-gold', 'text-white');
+                        item.classList.add('hover:bg-gold-light', 'hover:text-gold-dark');
                     } else {
                         selectedValues.push(value);
-                        e.target.classList.add('bg-gold', 'text-white');
-                        e.target.classList.remove('hover:bg-gold-light', 'hover:text-gold-dark');
+                        item.classList.add('bg-gold', 'text-white');
+                        item.classList.remove('hover:bg-gold-light', 'hover:text-gold-dark');
                     }
                     
                     hiddenInput.value = selectedValues.join(', ');
@@ -873,8 +836,8 @@
             options.querySelectorAll('.custom-option').forEach(item => {
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const value = e.target.getAttribute('data-value');
-                    const text = e.target.textContent;
+                    const value = item.getAttribute('data-value');
+                    const text = item.textContent;
                     
                     hiddenInput.value = value;
                     spanText.textContent = text;
@@ -1082,9 +1045,11 @@
             const transactionId = order.transactionId || "-";
             const paymentUrl = order.paymentUrl || order.checkoutUrl || "";
             const paymentStatus = window.normalizePaymentStatus(order.paymentStatus || order.statusPagamento);
-            const canManageFulfillment = paymentStatus === "pago";
             const paymentStatusLabel = paymentStatus.replace(/_/g, ' ');
             const orderStatusLabel = window.normalizeOrderStatus(order.orderStatus || order.statusPedido).replace(/_/g, ' ');
+            const deliveryStatusLabel = window.normalizeOrderStatus(order.deliveryStatus || order.orderStatus || order.statusPedido).replace(/_/g, ' ');
+            const gateway = order.gateway || order.paymentProvider || "infinitepay";
+            const valorPago = Number(order.valorPago || order.paidAmount || (paymentStatus === "pago" ? total : 0));
             const address = order.shippingAddress
                 ? `${order.shippingAddress.street || ''}, ${order.shippingAddress.number || ''} - ${order.shippingAddress.neighborhood || order.shippingAddress.district || ''}, ${order.shippingAddress.city || ''}/${order.shippingAddress.state || ''} - ${order.shippingAddress.cep || ''}`
                 : `${order.endereco || ''}, ${order.numero || ''} - ${order.bairro || ''}, ${order.cidade || ''}/${order.estado || ''} - ${order.cep || ''}`;
@@ -1104,31 +1069,32 @@
                                 <div><strong class="text-dark">Telefone:</strong> ${window.escapeHtml(customerPhone)}</div>
                                 <div><strong class="text-dark">CPF:</strong> ${window.escapeHtml(order.customerCPF || order.customerCpf || '')}</div>
                                 <div><strong class="text-dark">Compra:</strong> ${createdAt}</div>
-                                <div><strong class="text-dark">Aprovacao:</strong> ${paidAt}</div>
+                                <div><strong class="text-dark">Aprovação:</strong> ${paidAt}</div>
                                 <div><strong class="text-dark">Pagamento:</strong> ${window.escapeHtml(order.metodoPagamento || order.paymentMethod || 'infinitepay')}</div>
+                                <div><strong class="text-dark">Gateway:</strong> ${window.escapeHtml(gateway)}</div>
                                 <div><strong class="text-dark">Status pagamento:</strong> ${window.escapeHtml(paymentStatusLabel)}</div>
                                 <div><strong class="text-dark">Status pedido:</strong> ${window.escapeHtml(orderStatusLabel)}</div>
+                                <div><strong class="text-dark">Delivery status:</strong> ${window.escapeHtml(deliveryStatusLabel)}</div>
                                 <div><strong class="text-dark">Total:</strong> ${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                                <div><strong class="text-dark">Valor pago:</strong> ${valorPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
                                 <div><strong class="text-dark">Payment ID:</strong> ${window.escapeHtml(paymentId)}</div>
-                                <div><strong class="text-dark">Transacao:</strong> ${window.escapeHtml(transactionId)}</div>
+                                <div><strong class="text-dark">Transação:</strong> ${window.escapeHtml(transactionId)}</div>
                                 ${paymentUrl ? `<div class="sm:col-span-2"><strong class="text-dark">Link pagamento:</strong> <a href="${window.escapeHtml(paymentUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir link</a></div>` : ""}
-                                <div class="sm:col-span-2"><strong class="text-dark">Endereco:</strong> ${window.escapeHtml(address)}</div>
+                                <div class="sm:col-span-2"><strong class="text-dark">Endereço:</strong> ${window.escapeHtml(address)}</div>
                             </div>
                         </div>
                         <div class="w-full md:w-60 space-y-3">
-                            <select id="status-${order.id}" class="input-field w-full px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wide" ${canManageFulfillment ? "" : "disabled"}>
-                                <option value="aguardando_pagamento" ${!canManageFulfillment ? 'selected' : 'disabled'}>Aguardando pagamento</option>
+                            <select id="status-${order.id}" class="input-field w-full px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wide">
+                                <option value="aguardando_pagamento" ${statusValue === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando pagamento</option>
                                 <option value="pagamento_confirmado" ${statusValue === 'pagamento_confirmado' ? 'selected' : ''}>Pagamento confirmado</option>
-                                <option value="separando_pedido" ${statusValue === 'separando_pedido' ? 'selected' : ''}>Separando</option>
+                                <option value="preparando" ${statusValue === 'preparando' ? 'selected' : ''}>Preparando pedido</option>
                                 <option value="enviado" ${statusValue === 'enviado' ? 'selected' : ''}>Enviado</option>
                                 <option value="entregue" ${statusValue === 'entregue' ? 'selected' : ''}>Entregue</option>
                                 <option value="cancelado" ${statusValue === 'cancelado' ? 'selected' : ''}>Cancelado</option>
-                                <option value="reembolsado" ${statusValue === 'reembolsado' ? 'selected' : ''}>Reembolsado</option>
                             </select>
-                            <input id="track-code-${order.id}" value="${window.escapeHtml(order.trackingCode || order.codigoRastreio || '')}" placeholder="Codigo de rastreio" class="input-field w-full px-4 py-3 rounded-xl text-xs font-semibold">
+                            <input id="track-code-${order.id}" value="${window.escapeHtml(order.trackingCode || order.codigoRastreio || '')}" placeholder="Código de rastreio" class="input-field w-full px-4 py-3 rounded-xl text-xs font-semibold">
                             <input id="track-url-${order.id}" value="${window.escapeHtml(order.trackingUrl || order.linkRastreio || '')}" placeholder="Link de rastreio" class="input-field w-full px-4 py-3 rounded-xl text-xs font-semibold">
-                            ${!canManageFulfillment ? '<p class="text-[10px] uppercase tracking-widest font-bold text-yellow-700 bg-yellow-50 border border-yellow-100 rounded-xl p-3">Status logistico liberado apos pagamento real.</p>' : ''}
-                            <button onclick="window.updateOrderStatus('${order.id}')" ${canManageFulfillment ? "" : "disabled"} class="w-full bg-dark text-white text-[10px] uppercase tracking-widest font-bold py-3 rounded-xl hover:bg-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Salvar Status</button>
+                            <button onclick="window.updateOrderStatus('${order.id}')" class="w-full bg-dark text-white text-[10px] uppercase tracking-widest font-bold py-3 rounded-xl hover:bg-gold transition-colors">Salvar Status</button>
                             <button onclick="window.openOrderLogs('${order.id}')" class="w-full bg-gold-light/60 text-gold-dark text-[10px] uppercase tracking-widest font-bold py-3 rounded-xl hover:bg-gold-light transition-colors">Ver Logs</button>
                         </div>
                     </div>
@@ -1140,7 +1106,7 @@
                                     <img src="${item.imagem || item.image || ''}" class="w-14 h-16 rounded-xl object-cover bg-gray-100" alt="">
                                     <div class="text-xs">
                                         <p class="font-bold text-dark">${window.escapeHtml(item.nome || item.name)}</p>
-                                        <p class="text-gray-500 mt-1">Tam: ${window.escapeHtml(item.tamanho || item.variation || item.size || 'Unico')} | Qtd: ${Number(item.quantidade || item.quantity || 1)}</p>
+                                        <p class="text-gray-500 mt-1">Tam: ${window.escapeHtml(item.tamanho || item.variation || item.size || 'Único')} | Qtd: ${Number(item.quantity || item.quantidade || 1)}</p>
                                         <p class="font-bold text-gold-dark mt-1">${Number(item.preco || item.unitPrice || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                                     </div>
                                 </div>
@@ -1153,40 +1119,75 @@
 
         window.updateOrderStatus = async function(orderId) {
             try {
-                const token = await getAdminToken();
-                const payload = {
-                    orderId,
-                    orderStatus: document.getElementById(`status-${orderId}`).value,
-                    trackingCode: document.getElementById(`track-code-${orderId}`).value.trim(),
-                    trackingUrl: document.getElementById(`track-url-${orderId}`).value.trim()
-                };
                 const currentOrder = window.adminOrders.find(order => (order.idPedido || order.orderNumber || order.id) === orderId || order.id === orderId);
-                const currentPaymentStatus = window.normalizePaymentStatus(currentOrder?.paymentStatus || currentOrder?.statusPagamento);
-                if(currentPaymentStatus !== "pago") {
-                    window.showToast("Pagamento pendente nao pode ser confirmado manualmente.", "error");
+                const statusSelecionado = document.getElementById(`status-${orderId}`).value;
+                const trackingCode = document.getElementById(`track-code-${orderId}`).value.trim();
+                const trackingUrl = document.getElementById(`track-url-${orderId}`).value.trim();
+                
+                const total = Number(currentOrder.valorTotal || currentOrder.total || 0);
+                const agora = new Date().toISOString();
+
+                // Monta o objeto dinâmico de atualização
+                let update = {
+                    updatedAt: agora,
+                    trackingCode: trackingCode,
+                    codigoRastreio: trackingCode,
+                    trackingUrl: trackingUrl,
+                    linkRastreio: trackingUrl
+                };
+
+                if (statusSelecionado === "pagamento_confirmado") {
+                    update.statusPagamento = "aprovado";
+                    update.paymentStatus = "paid";
+                    update.paid = true;
+                    update.aprovacao = "Aprovado";
+                    update.valorPago = total;
+                    update.dataPagamento = agora;
+                    update.statusPedido = "pagamento_confirmado";
+                    update.deliveryStatus = "pagamento_confirmado";
+                    update.orderStatus = "pagamento_confirmado";
+                } else if (statusSelecionado === "preparando") {
+                    update.statusPedido = "preparando";
+                    update.deliveryStatus = "preparando";
+                    update.orderStatus = "preparando";
+                } else if (statusSelecionado === "enviado") {
+                    update.statusPedido = "enviado";
+                    update.deliveryStatus = "enviado";
+                    update.orderStatus = "enviado";
+                    update.shippedAt = agora;
+                } else if (statusSelecionado === "entregue") {
+                    update.statusPedido = "entregue";
+                    update.deliveryStatus = "entregue";
+                    update.orderStatus = "entregue";
+                    update.dataEntrega = agora;
+                    update.deliveredAt = agora;
+                } else if (statusSelecionado === "cancelado") {
+                    update.statusPedido = "cancelado";
+                    update.deliveryStatus = "cancelado";
+                    update.orderStatus = "cancelado";
+                } else {
+                    update.statusPedido = statusSelecionado;
+                    update.deliveryStatus = statusSelecionado;
+                    update.orderStatus = statusSelecionado;
+                }
+
+                const token = await getAdminToken();
+
+                // Se não houver token (acesso local direto pelo Firebase no admin)
+                if(!token) {
+                    await Promise.all([
+                        updateDoc(doc(db, "pedidos", orderId), update).catch(() => null),
+                        updateDoc(doc(db, "orders", orderId), update).catch(() => null)
+                    ]);
+                    window.showToast("Status atualizado com sucesso.");
                     return;
                 }
 
-                if(!token) {
-                    const updatedAt = new Date().toISOString();
-                    const update = {
-                        orderStatus: payload.orderStatus,
-                        statusPedido: payload.orderStatus,
-                        trackingCode: payload.trackingCode,
-                        codigoRastreio: payload.trackingCode,
-                        trackingUrl: payload.trackingUrl,
-                        linkRastreio: payload.trackingUrl,
-                        updatedAt
-                    };
-                    if(payload.orderStatus === "enviado") update.shippedAt = updatedAt;
-                    if(payload.orderStatus === "entregue") update.deliveredAt = updatedAt;
-                    await Promise.all([
-                        updateDoc(doc(db, "pedidos", orderId), update),
-                        updateDoc(doc(db, "orders", orderId), update).catch(() => null)
-                    ]);
-                    window.showToast("Pedido atualizado com sucesso.");
-                    return;
-                }
+                // Caso tenha API backend ativada no futuro
+                const payload = {
+                    orderId,
+                    ...update
+                };
 
                 const response = await fetch(`${window.API_BASE_URL}/api/admin-update-order`, {
                     method: "POST",
@@ -1196,9 +1197,11 @@
                     },
                     body: JSON.stringify(payload)
                 });
+                
                 const data = await response.json();
                 if(!response.ok || data.success === false) throw new Error(data.message || "Erro ao atualizar pedido.");
-                window.showToast("Pedido atualizado com sucesso.");
+                
+                window.showToast("Status updated successfully.");
             } catch(error) {
                 console.error("Erro update pedido:", error);
                 window.showToast(error.message || "Erro ao atualizar pedido.", "error");
@@ -1475,7 +1478,7 @@
                     await addDoc(collection(db, PRODUCT_COLLECTION_NAME), productData);
                     window.showToast("Peça adicionada à vitrine com sucesso!");
                     
-                    e.target.reset();
+                    document.getElementById('product-form').reset();
                     window.sizeQuantities = {};
                     document.getElementById('corHex').value = "#D4AF37"; 
                     document.getElementById('quantidade').value = "1";
@@ -1651,6 +1654,7 @@
                 
                 // Tag de Esgotado visualmente sobre a foto
                 const esgotadoTag = !isDisponivel ? `<div class="absolute bottom-4 left-4 bg-dark/95 backdrop-blur-md text-white text-[10px] font-bold px-4 py-2 rounded-lg uppercase tracking-widest border border-gray-700 shadow-xl z-20 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-gold"></i> Esgotado Geral</div>` : '';
+                const alertaEstoque = !isDisponivel ? `<div class="mb-4 rounded-xl border border-red-100 bg-red-50 text-red-600 text-[10px] uppercase tracking-widest font-black px-4 py-3 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Estoque zerado</div>` : '';
 
                 const numWhatsApp = "5532988138045";
                 let btns = '';
@@ -1691,7 +1695,6 @@
                             ${catTag}
                             ${esgotadoTag}
                             
-                            <!-- BOTÕES DE AÇÃO (EDITAR / APAGAR) -->
                             <div class="absolute top-4 right-4 flex gap-2 z-30 opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-90 group-hover:scale-100">
                                 <button onclick="window.openEdit('${id}')" class="bg-white/95 hover:bg-gold text-gold hover:text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center border border-white transition-colors" title="Editar Produto">
                                     <i class="fa-solid fa-pen text-sm"></i>
@@ -1714,6 +1717,7 @@
                             </div>
                             
                             <p class="text-xs text-gray-500 flex-1 line-clamp-2 leading-relaxed font-medium mb-6">${data.descricao || ''}</p>
+                            ${alertaEstoque}
                             
                             <div class="mt-auto pt-5 border-t border-gray-100">
                                 <div class="flex items-center justify-between mb-5">
