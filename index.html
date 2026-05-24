@@ -473,9 +473,9 @@
         }
     </style>
 
-    <script type="module">
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-        import { getFirestore, addDoc, collection, deleteDoc, doc, updateDoc, orderBy, query, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+        import { getFirestore, addDoc, collection, deleteDoc, doc, getDoc, updateDoc, orderBy, query, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
         import { getStorage } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
 
         const firebaseConfig = {
@@ -569,7 +569,7 @@
 
         window.setAdminAccess = function(user, adminData = {}) {
             window.currentAdmin = {
-                uid: user?.uid || "adm-sem-login",
+                uid: user?.uid || "adm-direto",
                 email: user?.email || adminData.email || "",
                 localAccess: true,
                 ...adminData
@@ -580,7 +580,7 @@
         };
 
         window.initAdminAuth = function() {
-            window.setAdminAccess({ uid: "adm-sem-login", email: "" }, { active: true });
+            window.setAdminAccess({ uid: "adm-direto", email: "" }, { active: true });
         };
 
         window.normalizePaymentStatus = function(status) {
@@ -596,6 +596,7 @@
                 pendente: "pendente",
                 pending: "pendente",
                 aguardando_pagamento: "pendente",
+                aguardando_confirmacao_pagamento: "pendente",
                 recusado: "recusado",
                 failed: "recusado",
                 pagamento_recusado: "recusado",
@@ -611,20 +612,21 @@
         window.normalizeOrderStatus = function(status) {
             const value = String(status || "").toLowerCase();
             const map = {
-                novo: "aguardando_pagamento",
+                novo: "aguardando_confirmacao_pagamento",
                 separacao: "preparando",
                 separando: "preparando",
                 separando_pedido: "preparando",
                 preparando: "preparando",
                 pagamento_aprovado: "pagamento_aprovado",
                 pagamento_confirmado: "pagamento_aprovado",
-                aguardando_pagamento: "aguardando_pagamento",
+                aguardando_pagamento: "aguardando_confirmacao_pagamento",
+                aguardando_confirmacao_pagamento: "aguardando_confirmacao_pagamento",
                 enviado: "enviado",
                 entregue: "entregue",
                 cancelado: "cancelado",
                 reembolsado: "reembolsado"
             };
-            return map[value] || value || "aguardando_pagamento";
+            return map[value] || value || "aguardando_confirmacao_pagamento";
         };
 
         window.getOrderStatusMeta = function(order) {
@@ -632,8 +634,9 @@
             const rawOrderStatus = order.orderStatus || order.statusPedido;
             const orderStatus = window.normalizeOrderStatus(rawOrderStatus || (paymentStatus === "pago" ? "pagamento_confirmado" : ""));
             const metas = {
-                aguardando_pagamento: ["Aguardando pagamento", "bg-yellow-50 text-yellow-700 border-yellow-200", "fa-clock"],
-                pendente: ["Aguardando pagamento", "bg-yellow-50 text-yellow-700 border-yellow-200", "fa-clock"],
+                aguardando_pagamento: ["Aguardando confirma\u00e7\u00e3o de pagamento", "bg-yellow-50 text-yellow-700 border-yellow-200", "fa-clock"],
+                aguardando_confirmacao_pagamento: ["Aguardando confirma\u00e7\u00e3o de pagamento", "bg-yellow-50 text-yellow-700 border-yellow-200", "fa-clock"],
+                pendente: ["Aguardando confirma\u00e7\u00e3o de pagamento", "bg-yellow-50 text-yellow-700 border-yellow-200", "fa-clock"],
                 pago: ["Pagamento confirmado", "bg-green-50 text-green-700 border-green-200", "fa-circle-check"],
                 pagamento_confirmado: ["Pagamento confirmado", "bg-green-50 text-green-700 border-green-200", "fa-circle-check"],
                 pagamento_aprovado: ["Pagamento aprovado", "bg-green-50 text-green-700 border-green-200", "fa-circle-check"],
@@ -998,7 +1001,7 @@
             grid.innerHTML = '<div class="flex justify-center py-16 text-gold"><div class="loader border-4 border-gold border-t-transparent rounded-full w-10 h-10 shadow-glow"></div></div>';
             if(unsubscribeOrders) unsubscribeOrders();
 
-            const listenOrders = (collectionName, allowFallback = true) => onSnapshot(collection(db, collectionName), (snapshot) => {
+            unsubscribeOrders = onSnapshot(collection(db, "pedidos"), (snapshot) => {
                 window.adminOrders = [];
                 const seen = new Set();
                 snapshot.forEach((docSnap) => {
@@ -1032,15 +1035,10 @@
 
                 window.renderOrders();
             }, (error) => {
-                console.error("Erro pedidos:", error);
-                if(allowFallback) {
-                    unsubscribeOrders = listenOrders("pedidos", false);
-                    return;
-                }
-                grid.innerHTML = '<div class="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-6 text-center font-bold">Erro ao carregar pedidos. Verifique permissao do admin.</div>';
+                console.error("Erro real ao carregar pedidos:", error);
+                grid.innerHTML = '<div class="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-6 text-center font-bold">N&atilde;o foi poss&iacute;vel carregar pedidos. Verifique login e permiss&otilde;es do Firebase.</div>';
+                window.showToast("Nao foi possivel carregar pedidos. Verifique login e permissoes do Firebase.", "error");
             });
-
-            unsubscribeOrders = listenOrders("pedidos", false);
         };
 
         window.loadAdminNotifications = function() {
@@ -1049,6 +1047,10 @@
                 window.adminNotifications = [];
                 snapshot.forEach((docSnap) => window.adminNotifications.push({ id: docSnap.id, ...docSnap.data() }));
                 window.adminNotifications.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                window.renderAdminNotifications();
+            }, (error) => {
+                console.warn("Notificacoes do ADM indisponiveis; pedidos continuam em realtime.", error);
+                window.adminNotifications = [];
                 window.renderAdminNotifications();
             });
         };
@@ -1158,6 +1160,7 @@
             const deliveredAt = deliveredAtDate ? deliveredAtDate.toLocaleString('pt-BR') : window.adminInfo("");
             const paymentId = order.paymentId || "";
             const transactionId = order.transaction_nsu || order.transactionId || "";
+            const invoiceSlug = order.invoice_slug || order.invoiceSlug || order.gatewayConfirmation?.invoice_slug || "";
             const paymentUrl = order.paymentUrl || order.checkoutUrl || order.checkout_url || "";
             const receiptUrl = order.receipt_url || order.receiptUrl || order.comprovanteUrl || "";
             const paymentStatus = window.normalizePaymentStatus(order.paymentStatus || order.statusPagamento);
@@ -1165,7 +1168,8 @@
             const orderStatusLabel = window.normalizeOrderStatus(order.orderStatus || order.statusPedido).replace(/_/g, ' ');
             const deliveryStatusLabel = window.normalizeOrderStatus(order.deliveryStatus || order.orderStatus || order.statusPedido).replace(/_/g, ' ');
             const gateway = order.gateway || order.paymentProvider || "infinitepay";
-            const valorPago = Number(order.valorPago || order.paidAmount || (paymentStatus === "pago" ? total : 0));
+            const paymentMethod = order.metodoPagamento || order.paymentMethod || order.gatewayConfirmation?.payment_method || order.gatewayConfirmation?.capture_method || "InfinitePay";
+            const valorPago = Number(order.paid_amount ?? order.valorPago ?? order.paidAmount ?? (paymentStatus === "pago" ? total : 0));
             const estoqueAtualizado = order.estoqueAtualizado === true || order.stockUpdated === true;
             const address = window.readOrderAddress(order);
             const addressText = [
@@ -1193,7 +1197,7 @@
                                 <div><strong class="text-dark">CPF:</strong> ${window.escapeHtml(customerCpf)}</div>
                                 <div><strong class="text-dark">Compra:</strong> ${createdAt}</div>
                                 <div><strong class="text-dark">Aprovação:</strong> ${paidAt}</div>
-                                <div><strong class="text-dark">Pagamento:</strong> ${window.escapeHtml(order.metodoPagamento || order.paymentMethod || 'infinitepay')}</div>
+                                <div><strong class="text-dark">Pagamento:</strong> ${window.escapeHtml(paymentMethod)}</div>
                                 <div><strong class="text-dark">Gateway:</strong> ${window.escapeHtml(gateway)}</div>
                                 <div><strong class="text-dark">Status pagamento:</strong> ${window.escapeHtml(paymentStatusLabel)}</div>
                                 <div><strong class="text-dark">Status pedido:</strong> ${window.escapeHtml(orderStatusLabel)}</div>
@@ -1203,7 +1207,7 @@
                                 <div><strong class="text-dark">Payment ID:</strong> ${window.escapeHtml(paymentId)}</div>
                                 <div><strong class="text-dark">Transação:</strong> ${window.escapeHtml(transactionId)}</div>
                                 <div><strong class="text-dark">Estoque atualizado:</strong> ${estoqueAtualizado ? "Sim" : "Não"}</div>
-                                ${receiptUrl ? `<div><strong class="text-dark">Comprovante:</strong> <a href="${window.escapeHtml(receiptUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir comprovante</a></div>` : ""}
+                                ${receiptUrl ? `<div><strong class="text-dark">Comprovante:</strong> <a href="${window.escapeHtml(receiptUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir comprovante</a></div>` : `<div><strong class="text-dark">Comprovante:</strong> Comprovante aguardando confirma&ccedil;&atilde;o do gateway</div>`}
                                 ${paymentUrl ? `<div class="sm:col-span-2"><strong class="text-dark">Link pagamento:</strong> <a href="${window.escapeHtml(paymentUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir link</a></div>` : ""}
                                 <div class="sm:col-span-2"><strong class="text-dark">Endereço:</strong> ${window.escapeHtml(window.adminInfo(addressText))}</div>
                             </div>
@@ -1228,8 +1232,9 @@
                                 <div><strong class="text-dark">paid:</strong> ${order.paid === true ? "true" : order.paid === false ? "false" : window.adminInfo("")}</div>
                                 <div><strong class="text-dark">gateway:</strong> ${window.escapeHtml(window.adminInfo(gateway))}</div>
                                 <div><strong class="text-dark">transaction_nsu:</strong> ${window.escapeHtml(window.adminInfo(transactionId))}</div>
-                                <div><strong class="text-dark">invoice_slug:</strong> ${window.escapeHtml(window.adminInfo(order.invoice_slug))}</div>
+                                <div><strong class="text-dark">invoice_slug:</strong> ${window.escapeHtml(window.adminInfo(invoiceSlug))}</div>
                                 <div><strong class="text-dark">paid_amount:</strong> ${window.escapeHtml(window.adminInfo(order.paid_amount ?? order.paidAmount ?? order.valorPago))}</div>
+                                <div><strong class="text-dark">M&eacute;todo:</strong> ${window.escapeHtml(window.adminInfo(paymentMethod))}</div>
                                 <div><strong class="text-dark">dataPagamento:</strong> ${window.escapeHtml(paidAt)}</div>
                                 <div class="sm:col-span-2"><strong class="text-dark">checkoutUrl:</strong> ${paymentUrl ? `<a href="${window.escapeHtml(paymentUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir checkout</a>` : window.adminInfo("")}</div>
                                 <div class="sm:col-span-2"><strong class="text-dark">receipt_url:</strong> ${receiptUrl ? `<a href="${window.escapeHtml(receiptUrl)}" target="_blank" class="text-gold-dark font-bold">Abrir comprovante</a>` : window.adminInfo("")}</div>
@@ -1245,7 +1250,7 @@
                         </div>
                         <div class="w-full md:w-60 space-y-3">
                             <select id="status-${order.id}" class="input-field w-full px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wide">
-                                <option value="aguardando_pagamento" ${statusValue === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando pagamento</option>
+                                <option value="aguardando_confirmacao_pagamento" ${statusValue === 'aguardando_confirmacao_pagamento' || statusValue === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando confirma&ccedil;&atilde;o</option>
                                 <option value="pagamento_aprovado" ${statusValue === 'pagamento_aprovado' || statusValue === 'pagamento_confirmado' ? 'selected' : ''}>Pagamento aprovado</option>
                                 <option value="preparando" ${statusValue === 'preparando' ? 'selected' : ''}>Preparando pedido</option>
                                 <option value="enviado" ${statusValue === 'enviado' ? 'selected' : ''}>Enviado</option>
