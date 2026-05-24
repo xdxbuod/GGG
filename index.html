@@ -339,26 +339,6 @@
             </div>
 
             <div class="lg:col-span-8">
-                <section class="glass-panel p-8 sm:p-10 rounded-[2rem] min-h-[260px] mb-10">
-                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-6 border-b border-gray-200/50 pb-6">
-                        <div>
-                            <div class="flex items-center gap-3 mb-2">
-                                <h2 class="font-serif text-4xl font-bold text-dark">Clientes</h2>
-                                <span id="customers-count" class="bg-gold text-white text-[10px] font-black px-3 py-1 rounded-full shadow-sm">0</span>
-                            </div>
-                            <p class="text-sm text-gray-500 mt-2 font-medium">Contas e enderecos salvos em tempo real.</p>
-                        </div>
-                        <button onclick="window.loadCustomers()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gold-dark hover:text-gold transition-colors bg-gold-light/40 px-5 py-2.5 rounded-full hover:bg-gold-light/60">
-                            <i class="fa-solid fa-rotate-right"></i> Sincronizar Clientes
-                        </button>
-                    </div>
-                    <div id="customers-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-5">
-                        <div class="flex justify-center py-10 text-gold">
-                            <div class="loader border-4 border-gold border-t-transparent rounded-full w-10 h-10 shadow-glow"></div>
-                        </div>
-                    </div>
-                </section>
-
                 <section class="glass-panel p-8 sm:p-10 rounded-[2rem] min-h-[360px] mb-10">
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-6 border-b border-gray-200/50 pb-6">
                         <div>
@@ -382,6 +362,8 @@
                             <i class="fa-solid fa-filter text-gray-400 absolute left-4 top-3.5 group-focus-within:text-gold transition-colors z-10"></i>
                             <select id="order-status-filter" class="input-field w-full pl-11 pr-8 py-3 rounded-xl text-sm font-semibold text-dark appearance-none cursor-pointer relative z-0">
                                 <option value="">Todos os status</option>
+                                <option value="pendente">Pendentes</option>
+                                <option value="pago">Pagos</option>
                                 <option value="aguardando_pagamento">Aguardando pagamento</option>
                                 <option value="pagamento_aprovado">Pagamento aprovado</option>
                                 <option value="preparando">Preparando pedido</option>
@@ -531,11 +513,9 @@
         window.COLLECTION_NAME = COLLECTION_NAME;
         window.PRODUCT_COLLECTION_NAME = PRODUCT_COLLECTION_NAME;
         window.adminOrders = [];
-        window.adminUsers = [];
         window.adminNotifications = [];
         window.seenPaidOrderIds = new Set(JSON.parse(localStorage.getItem('fabis_seen_paid_orders') || '[]'));
         let unsubscribeOrders = null;
-        let unsubscribeUsers = null;
         let unsubscribeNotifications = null;
         let unsubscribeSnapshot = null;
         
@@ -584,7 +564,6 @@
             window.currentAdmin = null;
             if(unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
             if(unsubscribeOrders) { unsubscribeOrders(); unsubscribeOrders = null; }
-            if(unsubscribeUsers) { unsubscribeUsers(); unsubscribeUsers = null; }
             if(unsubscribeNotifications) { unsubscribeNotifications(); unsubscribeNotifications = null; }
         };
 
@@ -596,7 +575,6 @@
                 ...adminData
             };
             if(typeof window.loadProducts === 'function') window.loadProducts();
-            if(typeof window.loadCustomers === 'function') window.loadCustomers();
             if(typeof window.loadOrders === 'function') window.loadOrders();
             if(typeof window.loadAdminNotifications === 'function') window.loadAdminNotifications();
         };
@@ -970,68 +948,49 @@
             };
         };
 
-        window.loadCustomers = function() {
-            const grid = document.getElementById("customers-grid");
-            if(!grid) return;
-            grid.innerHTML = '<div class="flex justify-center py-10 text-gold"><div class="loader border-4 border-gold border-t-transparent rounded-full w-10 h-10 shadow-glow"></div></div>';
-            if(unsubscribeUsers) unsubscribeUsers();
-
-            unsubscribeUsers = onSnapshot(collection(db, "usuarios"), (snapshot) => {
-                window.adminUsers = [];
-                snapshot.forEach((docSnap) => window.adminUsers.push({ id: docSnap.id, ...docSnap.data() }));
-                window.adminUsers.sort((a, b) => {
-                    const dateA = window.toDateSafe(a.updatedAt) || window.toDateSafe(a.createdAt) || new Date(0);
-                    const dateB = window.toDateSafe(b.updatedAt) || window.toDateSafe(b.createdAt) || new Date(0);
-                    return dateB - dateA;
-                });
-                window.renderCustomers();
-            }, (error) => {
-                console.error("Erro clientes:", error);
-                grid.innerHTML = '<div class="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-6 text-center font-bold">Erro ao carregar clientes em tempo real.</div>';
-            });
+        window.readOrderCustomer = function(order = {}) {
+            const cliente = order.cliente || {};
+            const customer = order.customer || {};
+            return {
+                nome: cliente.nome || customer.name || customer.nome || order.nomeCliente || order.customerName || order.nome || "",
+                email: cliente.email || customer.email || order.email || order.emailCliente || order.customerEmail || "",
+                telefone: cliente.telefone || customer.phone_number || customer.phone || customer.telefone || order.telefone || order.telefoneCliente || order.customerPhone || "",
+                cpf: cliente.cpf || customer.cpf || order.cpf || order.cpfCliente || order.customerCPF || order.customerCpf || ""
+            };
         };
 
-        window.renderCustomers = function() {
-            const grid = document.getElementById("customers-grid");
-            const count = document.getElementById("customers-count");
-            if(!grid) return;
-            if(count) count.textContent = window.adminUsers.length;
-            if(window.adminUsers.length === 0) {
-                grid.innerHTML = '<div class="bg-white/70 border border-gray-100 rounded-2xl p-8 text-center text-gray-400 font-semibold">Nenhum cliente encontrado.</div>';
-                return;
-            }
+        window.readOrderAddress = function(order = {}) {
+            const endereco = order.endereco && typeof order.endereco === "object" ? order.endereco : {};
+            const address = order.address || {};
+            const shipping = order.shippingAddress || order.enderecoEntrega || {};
+            return {
+                cep: endereco.cep || address.cep || shipping.cep || order.cep || "",
+                rua: endereco.rua || address.rua || address.street || shipping.rua || shipping.street || order.rua || order.enderecoTexto || (typeof order.endereco === "string" ? order.endereco : ""),
+                numero: endereco.numero || address.numero || address.number || shipping.numero || shipping.number || order.numero || "",
+                complemento: endereco.complemento || address.complemento || address.complement || shipping.complemento || shipping.complement || order.complemento || "",
+                bairro: endereco.bairro || address.bairro || address.neighborhood || address.district || shipping.bairro || shipping.neighborhood || shipping.district || order.bairro || "",
+                cidade: endereco.cidade || address.cidade || address.city || shipping.cidade || shipping.city || order.cidade || "",
+                uf: endereco.uf || address.uf || address.state || shipping.uf || shipping.state || order.uf || order.estado || ""
+            };
+        };
 
-            grid.innerHTML = window.adminUsers.map(user => {
-                const address = window.readAdminCustomerAddress(user);
-                const nome = user.nome || user.nomeCompleto || user.name || "";
-                const addressText = [
-                    address.rua,
-                    address.numero,
-                    address.complemento,
-                    address.bairro,
-                    address.cidade && address.uf ? `${address.cidade}/${address.uf}` : address.cidade || address.uf,
-                    address.cep
-                ].filter(Boolean).join(", ");
-
-                return `
-                    <article class="bg-white/85 border border-white/80 rounded-[1.5rem] p-5 shadow-sm">
-                        <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
-                            <div>
-                                <h3 class="font-serif text-2xl font-bold text-dark">${window.escapeHtml(window.adminInfo(nome))}</h3>
-                                <p class="text-[10px] uppercase tracking-widest font-black text-gold-dark mt-1">${window.escapeHtml(window.adminInfo(user.userId || user.uid || user.id))}</p>
-                            </div>
-                            <button onclick="window.openWhatsApp('${window.escapeHtml(user.telefone || user.phone || "")}', 'Ola, ${window.escapeHtml((nome || "cliente").split(" ")[0])}. Aqui e da Fabis Lacos.')" class="bg-gradient-to-r from-[#25D366] to-[#1DA851] text-white text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-xl">WhatsApp</button>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600 font-medium">
-                            <div><strong class="text-dark">E-mail:</strong> ${window.escapeHtml(window.adminInfo(user.email))}</div>
-                            <div><strong class="text-dark">Telefone:</strong> ${window.escapeHtml(window.adminInfo(user.telefone || user.phone))}</div>
-                            <div><strong class="text-dark">CPF:</strong> ${window.escapeHtml(window.adminInfo(user.cpf))}</div>
-                            <div><strong class="text-dark">Pedidos:</strong> ${Number(user.totalPedidos || 0)}</div>
-                            <div class="sm:col-span-2"><strong class="text-dark">Endereco:</strong> ${window.escapeHtml(window.adminInfo(addressText))}</div>
-                        </div>
-                    </article>
-                `;
-            }).join("");
+        window.readOrderItems = function(order = {}) {
+            return (order.items || order.produtos || []).map(item => {
+                const quantidade = Number(item.quantidade ?? item.quantity ?? 1) || 1;
+                const preco = Number(item.preco ?? item.price ?? item.unitPrice ?? item.precoUnitario ?? 0) || 0;
+                return {
+                    productId: item.productId || item.produtoId || item.id || item.sku || "",
+                    nome: item.nome || item.name || item.title || "Produto",
+                    imagem: item.imagem || item.image || item.foto || "",
+                    quantidade,
+                    preco,
+                    total: Number(item.total ?? item.subtotal ?? (preco * quantidade)) || 0,
+                    cor: item.cor || item.color || "",
+                    tamanho: item.tamanho || item.size || item.variation || "",
+                    categoria: item.categoria || item.category || "",
+                    subcategoria: item.subcategoria || item.subcategory || ""
+                };
+            });
         };
 
         window.loadOrders = function() {
@@ -1049,7 +1008,11 @@
                     seen.add(orderKey);
                     window.adminOrders.push(data);
                 });
-                window.adminOrders.sort((a, b) => new Date(b.createdAt || b.dataCriacao || 0) - new Date(a.createdAt || a.dataCriacao || 0));
+                window.adminOrders.sort((a, b) => {
+                    const dateA = window.toDateSafe(a.createdAt || a.dataCriacao || a.createdAtIso) || new Date(0);
+                    const dateB = window.toDateSafe(b.createdAt || b.dataCriacao || b.createdAtIso) || new Date(0);
+                    return dateB - dateA;
+                });
 
                 const newPaid = window.adminOrders.filter(order => {
                     const paymentStatus = window.normalizePaymentStatus(order.paymentStatus || order.statusPagamento);
@@ -1134,17 +1097,35 @@
                 });
             }
             if(search) {
-                orders = orders.filter(order => [
-                    order.id,
-                    order.idPedido,
-                    order.orderNumber,
-                    order.nomeCliente,
-                    order.customerName,
-                    order.email,
-                    order.customerEmail,
-                    order.telefone,
-                    order.customerPhone
-                ].filter(Boolean).join(' ').toLowerCase().includes(search));
+                orders = orders.filter(order => {
+                    const customer = window.readOrderCustomer(order);
+                    const address = window.readOrderAddress(order);
+                    const items = window.readOrderItems(order);
+                    return [
+                        order.id,
+                        order.orderId,
+                        order.idPedido,
+                        order.orderNumber,
+                        order.userId,
+                        order.uidCliente,
+                        customer.nome,
+                        customer.email,
+                        customer.telefone,
+                        customer.cpf,
+                        address.cep,
+                        address.rua,
+                        address.numero,
+                        address.bairro,
+                        address.cidade,
+                        address.uf,
+                        order.statusPagamento,
+                        order.paymentStatus,
+                        order.statusPedido,
+                        order.orderStatus,
+                        order.deliveryStatus,
+                        ...items.flatMap(item => [item.nome, item.productId, item.categoria, item.tamanho, item.cor])
+                    ].filter(Boolean).join(' ').toLowerCase().includes(search);
+                });
             }
 
             count.textContent = orders.length;
@@ -1159,14 +1140,13 @@
 
         window.renderOrderCard = function(order) {
             const [label, statusClass, icon] = window.getOrderStatusMeta(order);
-            const orderId = order.idPedido || order.orderNumber || order.id;
-            const cliente = order.cliente || {};
-            const customer = order.customer || {};
-            const customerName = cliente.nome || customer.name || order.nomeCliente || order.customerName || "";
-            const customerEmail = cliente.email || customer.email || order.email || order.customerEmail || "";
-            const customerPhone = cliente.telefone || customer.phone_number || customer.phone || order.telefone || order.customerPhone || "";
-            const customerCpf = cliente.cpf || order.customerCPF || order.customerCpf || "";
-            const products = order.produtos || order.items || [];
+            const orderId = order.orderId || order.idPedido || order.orderNumber || order.id;
+            const customerData = window.readOrderCustomer(order);
+            const customerName = customerData.nome;
+            const customerEmail = customerData.email;
+            const customerPhone = customerData.telefone;
+            const customerCpf = customerData.cpf;
+            const products = window.readOrderItems(order);
             const total = Number(order.valorTotal || order.total || 0);
             const createdAtDate = window.toDateSafe(order.dataCriacao || order.createdAt);
             const paidAtDate = window.toDateSafe(order.dataPagamento || order.paidAt);
@@ -1178,7 +1158,7 @@
             const deliveredAt = deliveredAtDate ? deliveredAtDate.toLocaleString('pt-BR') : window.adminInfo("");
             const paymentId = order.paymentId || "";
             const transactionId = order.transaction_nsu || order.transactionId || "";
-            const paymentUrl = order.paymentUrl || order.checkoutUrl || "";
+            const paymentUrl = order.paymentUrl || order.checkoutUrl || order.checkout_url || "";
             const receiptUrl = order.receipt_url || order.receiptUrl || order.comprovanteUrl || "";
             const paymentStatus = window.normalizePaymentStatus(order.paymentStatus || order.statusPagamento);
             const paymentStatusLabel = paymentStatus.replace(/_/g, ' ');
@@ -1187,18 +1167,7 @@
             const gateway = order.gateway || order.paymentProvider || "infinitepay";
             const valorPago = Number(order.valorPago || order.paidAmount || (paymentStatus === "pago" ? total : 0));
             const estoqueAtualizado = order.estoqueAtualizado === true || order.stockUpdated === true;
-            const legacyAddress = order.endereco && typeof order.endereco === "object" ? order.endereco : {};
-            const addressCompat = order.address || {};
-            const shippingAddress = order.shippingAddress || {};
-            const address = {
-                cep: shippingAddress.cep || legacyAddress.cep || addressCompat.cep || order.cep || "",
-                rua: shippingAddress.street || legacyAddress.rua || addressCompat.rua || order.rua || order.enderecoTexto || (typeof order.endereco === "string" ? order.endereco : ""),
-                numero: shippingAddress.number || legacyAddress.numero || addressCompat.numero || order.numero || "",
-                complemento: shippingAddress.complement || legacyAddress.complemento || addressCompat.comp || order.complemento || "",
-                bairro: shippingAddress.neighborhood || shippingAddress.district || legacyAddress.bairro || addressCompat.bairro || order.bairro || "",
-                cidade: shippingAddress.city || legacyAddress.cidade || addressCompat.cidade || order.cidade || "",
-                uf: shippingAddress.state || legacyAddress.uf || addressCompat.uf || order.estado || ""
-            };
+            const address = window.readOrderAddress(order);
             const addressText = [
                 address.rua,
                 address.numero,
@@ -1221,7 +1190,7 @@
                                 <div><strong class="text-dark">Cliente:</strong> ${window.escapeHtml(customerName)}</div>
                                 <div><strong class="text-dark">E-mail:</strong> ${window.escapeHtml(customerEmail)}</div>
                                 <div><strong class="text-dark">Telefone:</strong> ${window.escapeHtml(customerPhone)}</div>
-                                <div><strong class="text-dark">CPF:</strong> ${window.escapeHtml(order.customerCPF || order.customerCpf || '')}</div>
+                                <div><strong class="text-dark">CPF:</strong> ${window.escapeHtml(customerCpf)}</div>
                                 <div><strong class="text-dark">Compra:</strong> ${createdAt}</div>
                                 <div><strong class="text-dark">Aprovação:</strong> ${paidAt}</div>
                                 <div><strong class="text-dark">Pagamento:</strong> ${window.escapeHtml(order.metodoPagamento || order.paymentMethod || 'infinitepay')}</div>
@@ -1296,17 +1265,17 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             ${products.map(item => `
                                 <div class="flex gap-3 bg-gray-50 rounded-2xl p-3">
-                                    ${item.imagem || item.image
-                                        ? `<img src="${item.imagem || item.image}" class="w-14 h-16 rounded-xl object-cover bg-gray-100" alt="">`
+                                    ${item.imagem
+                                        ? `<img src="${window.escapeHtml(item.imagem)}" class="w-14 h-16 rounded-xl object-cover bg-gray-100" alt="">`
                                         : `<div class="w-14 h-16 rounded-xl bg-gray-100 text-[9px] text-gray-400 font-bold flex items-center justify-center text-center px-1">Não informado</div>`}
                                     <div class="text-xs">
-                                        <p class="font-bold text-dark">${window.escapeHtml(window.adminInfo(item.nome || item.name))}</p>
-                                        <p class="text-gray-500 mt-1">productId: ${window.escapeHtml(window.adminInfo(item.productId || item.id))}</p>
-                                        <p class="text-gray-500 mt-1">Qtd: ${window.escapeHtml(window.adminInfo(item.quantity ?? item.quantidade))} | Tam: ${window.escapeHtml(window.adminInfo(item.tamanho || item.variation || item.size))}</p>
-                                        <p class="text-gray-500 mt-1">Cor: ${window.escapeHtml(window.adminInfo(item.cor || item.color))}</p>
-                                        <p class="text-gray-500 mt-1">Categoria: ${window.escapeHtml(window.adminInfo(item.categoria || item.category))} | Sub: ${window.escapeHtml(window.adminInfo(item.subcategoria || item.subcategory))}</p>
-                                        <p class="font-bold text-gold-dark mt-1">Unitario: ${Number(item.price || item.preco || item.unitPrice || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                                        <p class="font-bold text-dark mt-1">Total: ${Number(item.total || item.subtotal || (Number(item.price || item.preco || item.unitPrice || 0) * Number(item.quantity || item.quantidade || 1)) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                        <p class="font-bold text-dark">${window.escapeHtml(window.adminInfo(item.nome))}</p>
+                                        <p class="text-gray-500 mt-1">productId: ${window.escapeHtml(window.adminInfo(item.productId))}</p>
+                                        <p class="text-gray-500 mt-1">Qtd: ${window.escapeHtml(window.adminInfo(item.quantidade))} | Tam: ${window.escapeHtml(window.adminInfo(item.tamanho))}</p>
+                                        <p class="text-gray-500 mt-1">Cor: ${window.escapeHtml(window.adminInfo(item.cor))}</p>
+                                        <p class="text-gray-500 mt-1">Categoria: ${window.escapeHtml(window.adminInfo(item.categoria))} | Sub: ${window.escapeHtml(window.adminInfo(item.subcategoria))}</p>
+                                        <p class="font-bold text-gold-dark mt-1">Unitario: ${Number(item.preco || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                        <p class="font-bold text-dark mt-1">Total: ${Number(item.total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                                     </div>
                                 </div>
                             `).join('')}
@@ -1317,11 +1286,12 @@
         };
 
         window.openOrderWhatsApp = function(orderId) {
-            const order = window.adminOrders.find(item => item.id === orderId || item.orderNumber === orderId || item.idPedido === orderId);
+            const order = window.adminOrders.find(item => item.id === orderId || item.orderId === orderId || item.orderNumber === orderId || item.idPedido === orderId);
             if(!order) return;
-            const customerName = order.nomeCliente || order.customerName || "cliente";
-            const customerPhone = order.telefone || order.customerPhone || "";
-            const displayId = order.idPedido || order.orderNumber || order.id || orderId;
+            const customer = window.readOrderCustomer(order);
+            const customerName = customer.nome || "cliente";
+            const customerPhone = customer.telefone || "";
+            const displayId = order.orderId || order.idPedido || order.orderNumber || order.id || orderId;
             const paymentStatus = window.normalizePaymentStatus(order.paymentStatus || order.statusPagamento);
             const orderStatus = window.normalizeOrderStatus(order.deliveryStatus || order.orderStatus || order.statusPedido);
             const trackingCode = order.trackingCode || order.codigoRastreio || "";
@@ -1339,9 +1309,10 @@
         };
 
         window.filterCustomerHistory = function(orderId) {
-            const order = window.adminOrders.find(item => item.id === orderId || item.orderNumber === orderId || item.idPedido === orderId);
+            const order = window.adminOrders.find(item => item.id === orderId || item.orderId === orderId || item.orderNumber === orderId || item.idPedido === orderId);
             if(!order) return;
-            const queryText = order.customerEmail || order.email || order.customerPhone || order.telefone || order.customerId || order.userId || "";
+            const customer = window.readOrderCustomer(order);
+            const queryText = customer.email || customer.telefone || customer.cpf || order.customerId || order.userId || order.uidCliente || "";
             document.getElementById("order-search-input").value = queryText;
             window.renderOrders();
             window.showToast("Histórico do cliente filtrado.");
