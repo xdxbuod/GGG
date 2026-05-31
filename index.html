@@ -198,58 +198,45 @@
                             <div class="relative" id="tamanho-wrapper">
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Tamanho (Múltiplo)</label>
                                 <div class="relative">
-                                    <i class="fa-solid fa-ruler text-gray-400 absolute left-4 top-3.5 z-10"></i>
-                                    <div id="tamanho-display" class="input-field w-full pl-10 pr-8 py-3 rounded-xl cursor-pointer flex items-center justify-between text-sm font-semibold text-gray-400 select-none hover:bg-white transition-colors overflow-hidden">
-                                        <span class="truncate">Selecionar</span>
-                                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 shrink-0 ml-1"></i>
-                                    </div>
-                                    
-                                    <div id="tamanho-options" class="custom-options absolute top-full left-0 w-full mt-2 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl rounded-xl z-50 hidden max-h-56 overflow-y-auto custom-scrollbar p-1">
-                                        <div class="px-3 py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50/80 sticky top-0 rounded-md">Letras</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="P">P</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="M">M</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="G">G</div>
-                                        
-                                        <div class="px-3 py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50/80 sticky top-0 rounded-md mt-1">Números</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="0">0</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="1">1</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="2">2</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="3">3</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="4">4</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="5">5</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="6">6</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="7">7</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="8">8</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="9">9</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="10">10</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="11">11</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="12">12</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="13">13</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="14">14</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="15">15</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="16">16</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="17">17</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="18">18</div>
-                                    </div>
-                                    <input type="hidden" id="tamanho" value="">
+                                    <i class="fa-solid fa-ruler text-gray-400 absolute left-4 top-3.5 z-10 group-focus-within:text-gold transition-colors"></i>
+                                    <input type="text" id="tamanho" list="tamanhos-salvos" placeholder="Ex: P, M, 12..." class="input-field w-full pl-10 pr-3 py-3 rounded-xl text-sm font-semibold text-dark placeholder-gray-300">
+                                    <datalist id="tamanhos-salvos">
+                                        <option value="P">
+                                        <option value="M">
+                                        <option value="G">
+                                        <option value="0">
+                                        <option value="1">
+                                        <option value="2">
+                                        <option value="3">
+                                        <option value="4">
+                                        <option value="5">
+                                        <option value="6">
+                                        <option value="7">
+                                        <option value="8">
+                                        <option value="9">
+                                        <option value="10">
+                                        <option value="11">
+                                        <option value="12">
+                                        <option value="13">
+                                        <option value="14">
+                                        <option value="15">
+                                        <option value="16">
+                                        <option value="17">
+                                        <option value="18">
+                                    </datalist>
                                 </div>
                             </div>
 
                             <div class="relative" id="genero-wrapper">
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Gênero</label>
                                 <div class="relative">
-                                    <i class="fa-solid fa-venus-mars text-gray-400 absolute left-4 top-3.5 z-10"></i>
-                                    <div id="genero-display" class="input-field w-full pl-10 pr-8 py-3 rounded-xl cursor-pointer flex items-center justify-between text-sm font-semibold text-gray-400 select-none hover:bg-white transition-colors">
-                                        <span class="truncate">Selecionar</span>
-                                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 shrink-0 ml-1"></i>
-                                    </div>
-                                    
-                                    <div id="genero-options" class="custom-options absolute top-full left-0 w-full mt-2 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl rounded-xl z-50 hidden max-h-56 overflow-y-auto custom-scrollbar p-1">
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="Feminino">Feminino</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="Masculino">Masculino</div>
-                                        <div class="custom-option px-4 py-2.5 hover:bg-gold-light hover:text-gold-dark rounded-lg cursor-pointer text-sm font-bold transition-colors my-0.5" data-value="Unissex">Unissex</div>
-                                    </div>
-                                    <input type="hidden" id="genero" value="">
+                                    <i class="fa-solid fa-venus-mars text-gray-400 absolute left-4 top-3.5 z-10 group-focus-within:text-gold transition-colors"></i>
+                                    <input type="text" id="genero" list="generos-salvos" placeholder="Ex: Feminino" class="input-field w-full pl-10 pr-3 py-3 rounded-xl text-sm font-semibold text-dark placeholder-gray-300">
+                                    <datalist id="generos-salvos">
+                                        <option value="Feminino">
+                                        <option value="Masculino">
+                                        <option value="Unissex">
+                                    </datalist>
                                 </div>
                             </div>
 
@@ -1023,11 +1010,78 @@
             };
         }
 
-        setupMultiSelect('tamanho-wrapper', 'tamanho-display', 'tamanho-options', 'tamanho');
-        // Vincula a exibição dos estoques com a mudança de tamanho
-        document.getElementById('tamanho-wrapper').onChange = window.updateSizeStockUI; 
-        
-        setupSingleSelect('genero-wrapper', 'genero-display', 'genero-options', 'genero');
+        const DEFAULT_SIZE_OPTIONS = ["P", "M", "G", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"];
+        const DEFAULT_GENDER_OPTIONS = ["Feminino", "Masculino", "Unissex"];
+
+        window.parseManualList = function(value) {
+            return String(value || "")
+                .split(',')
+                .map(item => item.trim())
+                .filter(Boolean);
+        };
+
+        window.fillDatalist = function(id, values = []) {
+            const datalist = document.getElementById(id);
+            if(!datalist) return;
+            const unique = new Map();
+            values.forEach(value => {
+                const text = String(value || "").trim();
+                if(!text) return;
+                unique.set(text.toLowerCase(), text);
+            });
+            datalist.innerHTML = "";
+            unique.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                datalist.appendChild(option);
+            });
+        };
+
+        window.refreshProductFieldSuggestions = function() {
+            const savedSizes = (window.allProducts || []).flatMap(product => window.parseManualList(product.tamanho));
+            const savedGenders = (window.allProducts || []).map(product => product.genero).filter(Boolean);
+            window.fillDatalist('tamanhos-salvos', [...DEFAULT_SIZE_OPTIONS, ...savedSizes]);
+            window.fillDatalist('generos-salvos', [...DEFAULT_GENDER_OPTIONS, ...savedGenders]);
+        };
+
+        function setupManualSizeInput() {
+            const wrapper = document.getElementById('tamanho-wrapper');
+            const input = document.getElementById('tamanho');
+            const syncStockFields = () => window.updateSizeStockUI(window.parseManualList(input.value));
+
+            input.addEventListener('input', syncStockFields);
+            input.addEventListener('blur', () => {
+                input.value = window.parseManualList(input.value).join(', ');
+                syncStockFields();
+            });
+
+            wrapper.resetMulti = () => {
+                input.value = "";
+                window.updateSizeStockUI([]);
+            };
+
+            wrapper.setValues = (valuesStr) => {
+                input.value = String(valuesStr || "");
+                syncStockFields();
+            };
+        }
+
+        function setupManualSingleInput(wrapperId, inputId) {
+            const wrapper = document.getElementById(wrapperId);
+            const input = document.getElementById(inputId);
+
+            wrapper.resetSingle = () => {
+                input.value = "";
+            };
+
+            wrapper.setValue = (value) => {
+                input.value = String(value || "");
+            };
+        }
+
+        setupManualSizeInput();
+        setupManualSingleInput('genero-wrapper', 'genero');
+        window.refreshProductFieldSuggestions();
 
         // ===== TOASTS E MODAIS =====
         window.showToast = function(message, type = 'success') {
@@ -1796,13 +1850,15 @@
             const corNome = document.getElementById('corNome').value.trim();
             
             // Verifica os tamanhos selecionados e calcula o estoque total
-            const tamanho = document.getElementById('tamanho').value || "";
+            const tamanhosSelecionados = window.parseManualList(document.getElementById('tamanho').value);
+            const tamanho = tamanhosSelecionados.join(', ');
+            document.getElementById('tamanho').value = tamanho;
             let quantidadeTotal = 0;
             let estoqueTamanhosFinal = null;
 
-            if (tamanho) {
+            if (tamanhosSelecionados.length > 0) {
                 estoqueTamanhosFinal = {};
-                const sizesArray = tamanho.split(',').map(s => s.trim());
+                const sizesArray = tamanhosSelecionados;
                 document.querySelectorAll('.size-qty-input').forEach(input => {
                     const s = input.getAttribute('data-size');
                     if (sizesArray.includes(s)) {
@@ -2183,6 +2239,7 @@
                     option.value = cat;
                     datalist.appendChild(option);
                 });
+                window.refreshProductFieldSuggestions();
 
                 updateCategoryDropdown();
                 window.renderProducts();
