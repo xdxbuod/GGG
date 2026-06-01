@@ -1,0 +1,147 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function hasAdminFields(data) {
+      return data.get('role', '') == "admin"
+        || data.get('tipo', '') == "admin"
+        || data.get('isAdmin', false) == true;
+    }
+
+    function isAdminEmail() {
+      return signedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email in [
+          "gabrielalencar687@gmail.com",
+          "oficialapexdigital@gmail.com",
+          "alphaclothesgg@gmail.com"
+        ];
+    }
+
+    function isUsuarioAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid))
+        && hasAdminFields(get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data);
+    }
+
+    function isClienteAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/clientes/$(request.auth.uid))
+        && hasAdminFields(get(/databases/$(database)/documents/clientes/$(request.auth.uid)).data);
+    }
+
+    function isCustomerAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/customers/$(request.auth.uid))
+        && hasAdminFields(get(/databases/$(database)/documents/customers/$(request.auth.uid)).data);
+    }
+
+    function isAdmin() {
+      return isAdminEmail() || isUsuarioAdmin() || isClienteAdmin() || isCustomerAdmin();
+    }
+
+    function doesNotClaimAdmin() {
+      return request.resource.data.get('role', '') != "admin"
+        && request.resource.data.get('tipo', '') != "admin"
+        && request.resource.data.get('isAdmin', false) != true;
+    }
+
+    function ownsData(data) {
+      return signedIn() && (
+        data.get('userId', '') == request.auth.uid
+        || data.get('clienteId', '') == request.auth.uid
+        || data.get('uidCliente', '') == request.auth.uid
+        || data.get('customerId', '') == request.auth.uid
+        || data.get('uid', '') == request.auth.uid
+      );
+    }
+
+    function isPendingOrderCreate() {
+      return ownsData(request.resource.data)
+        && request.resource.data.get('paid', false) == false
+        && request.resource.data.get('estoqueAtualizado', false) == false
+        && request.resource.data.get('paymentStatus', 'pending') in [
+          'pending',
+          'pendente',
+          'aguardando_confirmacao_pagamento'
+        ]
+        && request.resource.data.get('statusPagamento', 'pendente') in [
+          'pending',
+          'pendente',
+          'aguardando_confirmacao_pagamento'
+        ]
+        && request.resource.data.get('statusPedido', 'aguardando_confirmacao_pagamento') in [
+          'aguardando_pagamento',
+          'aguardando_confirmacao_pagamento'
+        ];
+    }
+
+    match /pedidos/{orderId} {
+      allow create: if isPendingOrderCreate();
+      allow read: if isAdmin() || ownsData(resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow create: if isPendingOrderCreate();
+      allow read: if isAdmin() || ownsData(resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /usuarios/{userId} {
+      allow read: if isAdmin() || isSelf(userId);
+      allow create, update: if isAdmin() || (isSelf(userId) && doesNotClaimAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /clientes/{userId} {
+      allow read: if isAdmin() || isSelf(userId);
+      allow create, update: if isAdmin() || (isSelf(userId) && doesNotClaimAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /customers/{userId} {
+      allow read: if isAdmin() || isSelf(userId);
+      allow create, update: if isAdmin() || (isSelf(userId) && doesNotClaimAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /produtos/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /categorias/{categoryId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /carrinhos/{userId} {
+      allow read, write: if isSelf(userId);
+    }
+
+    match /wishlists/{userId} {
+      allow read, write: if isSelf(userId);
+    }
+
+    match /checkouts/{docId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
